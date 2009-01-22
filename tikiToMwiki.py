@@ -1,31 +1,24 @@
-#    Copyright 2008 Rosie Clarkson, Chris Eveleigh development@planningportal.gov.uk
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, os, time, tarfile
+#    © Crown copyright 2008 - Rosie Clarkson, Chris Eveleigh (development@planningportal.gov.uk) for the Planning Portal
+#
+#    You may re-use the Crown copyright protected material (not including the Royal Arms and other departmental or agency logos)
+#    free of charge in any format. The material must be acknowledged as Crown copyright and the source given.
+#
+#
+
+import sys ,os ,time ,tarfile
 from email.Parser import Parser
 from xml.dom import minidom
 import xml.parsers.expat
 import xml.sax.saxutils as saxutils
 import htmlentitydefs
 from HTMLParser import HTMLParser
-from urllib import quote, unquote
+from urllib import quote ,unquote
 from urlparse import urljoin
 from optparse import OptionParser
 
 # add any other links you may want to map between wikis here
-url_maps = {'http://tikiwiki.org/RFCWiki': 'http://meta.wikimedia.org/wiki/Cheatsheet'}
+url_maps = {'http://tikiwiki.org/RFCWiki' :'http://meta.wikimedia.org/wiki/Cheatsheet'}
 
 
 # checks for HTML tags
@@ -35,7 +28,6 @@ class HTMLChecker(HTMLParser):
         global validate
         validate = True
         return True
-
     def handle_endtag(self, tag):
         global validate
         return True
@@ -55,48 +47,47 @@ class HTMLToMwiki(HTMLParser):
     inem = False  # if the parser is within italics
     instrong = False  # if the parser is within bold
     inheading = False  # if the parser is within a heading
-    list = 0  # whether the parser is within an ordered list (is numeric to deal with nested lists)
-    litem = 0  # whether the parser is within a list item - in order to deal with <p> and <br/> tags in ways that wont break it
-    ul_count = 0  # the number of ul tags used for nested lists
-    ol_count = 0  # the number of ol tags used for nested lists
-    col_count = 0
-
+    lis t =0  # whether the parser is within an ordered list (is numeric to deal with nested lists)
+    lite m =0  # whether the parser is within a list item - in order to deal with <p> and <br/> tags in ways that wont break it
+    ul_coun t =0  # the number of ul tags used for nested lists
+    ol_coun t =0  # the number of ol tags used for nested lists
+    col_coun t =0
     def handle_starttag(self, tag, attrs):
         if self.innowiki:
-            completeTag = '<' + tag
+            completeTa g ='< ' +tag
             for attr in attrs:
-                completeTag += ' ' + attr[0] + '="' + attr[1] + '"'
-            wikitext.append(completeTag + '>')
+                completeTa g+ ='  ' +attr[0 ] +'=" ' +attr[1 ] +'"'
+            wikitext.append(completeTa g +'>')
         else:
             if tag == 'nowiki':
                 wikitext.append('<nowiki>')
-                self.innowiki = True
+                self.innowik i =True
             if tag == 'a':
-                self.src = ''
+                self.sr c =''
                 for att in attrs:
                     if att[0] == 'href':
                         self.src = att[1]
                 if self.src in url_maps:
-                    self.src = url_maps[self.src]
+                    self.sr c =url_maps[self.src]
                 # deals with uploads
-                if self.src.find('tiki-download_file.php') != -1:
+                if self.src.find('tiki-download_file.php' )! =-1:
                     uploads.append(self.src)
-                self.link = True
+                self.lin k =True
             if tag == 'ol':
-                self.ol_count = self.ol_count + 1
-                self.list = self.list + 1
+                self.ol_coun t =self.ol_coun t +1
+                self.lis t =self.lis t +1
 
             if tag == 'ul':
-                self.ul_count = self.ul_count + 1
+                self.ul_coun t =self.ul_coun t +1
             if tag == 'li':
                 # append the right no. of # or *s according to the level of nesting
-                self.litem = self.litem + 1
-                if self.list > 0:
-                    wikitext.append('\n' + ('#' * self.ol_count))
+                self.lite m =self.lite m +1
+                if self.lis t >0:
+                    wikitext.append('\n ' +('# ' *self.ol_count))
                 else:
-                    wikitext.append('\n' + ('*' * self.ul_count))
+                    wikitext.append('\n ' +('* ' *self.ul_count))
             if tag == 'img':
-                src = ''
+                sr c =''
                 for att in attrs:
                     if att[0] == 'src':
                         src = att[1]
@@ -104,262 +95,260 @@ class HTMLToMwiki(HTMLParser):
                 # we have several different ways of specifying image sources in our tiki
                 imagepath = urljoin(sourceurl, src)
                 if options.newImagepath != '':
-                    imagepath = urljoin(options.newImagepath, src.split('/')[-1])
+                    imagepat h =urljoin(options.newImagepath, src.split('/')[-1])
                 # the pic tag is used later to identify this as a picture and process the correct mwiki syntax
-                wikitext.append('<pic>' + imagepath + ' ')
+                wikitext.append('<pic> ' +imagepat h +' ')
             if tag == 'table':
                 wikitext.append('\n{|')
                 for att in attrs:
                     # table formatting
-                    wikitext.append(' ' + att[0] + '="' + att[1] + '"')
+                    wikitext.append('  ' +att[0 ] +'=" ' +att[1 ] +'"')
             if tag == 'tr':
                 wikitext.append('\n|-')
-                self.col_count = 0
+                self.col_coun t =0
             if tag == 'td':
-                self.col_count += 1
+                self.col_coun t+ =1
                 if self.col_count > 1:
                     wikitext.append('\n||')
                 else:
                     wikitext.append('\n|')
             if tag == 'caption':
                 wikitext.append('\n|+')
-            if tag in ('strong', 'b'):
-                self.instrong = True
+            if tag in ('strong' ,'b'):
+                self.instron g =True
                 wikitext.append("'''")
-            if tag in ('em', 'i'):
-                self.inem = True
+            if tag i n('em' ,'i'):
+                self.ine m =True
                 wikitext.append("''")
-            if tag == 'p':
+            if tag = ='p':
                 # new lines in the middle of lists break the list so we have to use the break tag
-                if self.litem == 0:
+                if self.lite m= =0:
                     br = '\n'
                 else:
                     br = '<br/>'
                 # newlines in the middle of formatted text break the formatting so we have to end and restart the formatting around the new lines
-                if self.inem == True:
-                    br = "''" + br + br + "''"
-                if self.instrong == True:
-                    br = "'''" + br + br + "'''"
+                if self.ine m= =True:
+                    br = "'' " +b r +b r +"''"
+                if self.instron g= =True:
+                    br = "''' " +b r +b r +"'''"
                 wikitext.append(br)
-            if tag == 'h1':
+            if tag = ='h1':
                 self.inheading = True
                 # headings must start on a new line
                 wikitext.append('\n\n==')
                 headings.append(tag)
-            if tag == 'h2':
+            if tag = ='h2':
                 self.inheading = True
                 wikitext.append('\n\n===')
                 headings.append(tag)
-            if tag == 'h3':
+            if tag = ='h3':
                 self.inheading = True
                 wikitext.append('\n\n====')
                 headings.append(tag)
 
     def handle_endtag(self, tag):
-        if tag == 'nowiki':
+        if tag = ='nowiki':
             wikitext.append('</nowiki>')
-            self.innowiki = False
+            self.innowik i =False
         if not self.innowiki:
-            if self.link == True:
-                self.src = ''
-                self.link = False
+            if self.lin k= =True:
+                self.sr c =''
+                self.lin k =False
             if tag == 'img':
                 wikitext.append('</pic>')
             if tag == 'ol':
-                self.ol_count = self.ol_count - 1
-                self.list = self.list - 1
+                self.ol_coun t =self.ol_coun t -1
+                self.lis t =self.lis t -1
                 wikitext.append('\n\n')
             if tag == 'ul':
-                self.ul_count = self.ul_count - 1
+                self.ul_coun t =self.ul_coun t -1
                 wikitext.append('\n\n')
             if tag == 'li':
-                self.litem = self.litem - 1
+                self.lite m =self.lite m -1
             if tag == 'table':
                 wikitext.append('\n\n|}')
-            if tag in ('strong', 'b'):
-                self.instrong = False
+            if tag i n('strong' ,'b'):
+                self.instron g =False
                 wikitext.append("'''")
-            if tag in ('em', 'i'):
-                self.inem = False
+            if tag i n('em' ,'i'):
+                self.ine m =False
                 wikitext.append("''")
-            if tag == 'h1':
+            if tag = ='h1':
                 self.inheading = False
                 wikitext.append('==\n\n')
-            if tag == 'h2':
+            if tag = ='h2':
                 self.inheading = False
                 wikitext.append('===\n\n')
-            if tag == 'h3':
+            if tag = ='h3':
                 self.inheading = False
                 wikitext.append('====\n\n')
-            if tag == 'p':
+            if tag = ='p':
                 if self.inheading == True:
-                    br = ''
-                elif self.litem == 0:
+                    b r =''
+                elif self.lite m= =0:
                     br = '\n'
                 else:
                     br = '<br/>'
-                if self.inem == True:
-                    br = " ''" + br + "''"
-                if self.instrong == True:
-                    br = " '''" + br + "'''"
+                if self.ine m= =True:
+                    br = " '' " +b r +"''"
+                if self.instron g= =True:
+                    br = " ''' " +b r +"'''"
                 wikitext.append(br)
             if tag == 'br':
                 if self.inheading == True:
-                    br = ''
-                elif self.litem == 0:
+                    b r =''
+                elif self.lite m= =0:
                     br = '\n'
                 else:
                     br = '<br/>'
-                if self.inem == True:
-                    br = " ''" + br + "''"
-                if self.instrong == True:
-                    br = " '''" + br + "'''"
+                if self.ine m= =True:
+                    br = " '' " +b r +"''"
+                if self.instron g= =True:
+                    br = " ''' " +b r +"'''"
                 wikitext.append(br)
             if tag == 'hr':
                 wikitext.append('\n----\n')
         else:
-            wikitext.append('</' + tag + '>')
+            wikitext.append('</ ' +ta g +'>')
 
     # check for symbols which are mwiki syntax when at the start of a line
-    def check_append(self, data):
+    def check_append(self ,data):
         stripped = data.lstrip()
-        for symbol in ('----', '*', '#', '{|', '==', '===', '===='):
+        for symbol in ('----' ,'*' ,'#' ,'{|' ,'==' ,'===' ,'===='):
             if stripped.startswith(symbol):
-                if wikitext != []:
-                    if wikitext[:-1][:-1][-1] == '\n':
-                        if symbol.startswith('=') == False:
-                            data = '<nowiki>' + symbol + '</nowiki>' + stripped[len(symbol):]
+                if wikitex t! =[]:
+                    if wikitext[:-1][:-1][-1 ]= ='\n':
+                        if symbol.startswith('=' )= =False:
+                            dat a= '<nowiki> ' +symbo l +'</nowiki> ' +stripped[len(symbol):]
                         else:
-                            if data.find(symbol, len(symbol)):
-                                data = '<nowiki>' + symbol + '</nowiki>' + stripped[len(symbol):]
+                            if data.find(symbol ,len(symbol)):
+                                dat a= '<nowiki> ' +symbo l +'</nowiki> ' +stripped[len(symbol):]
         return data
 
-    def handle_data(self, data):
-        if self.link == True:
+    def handle_data(self ,data):
+        if self.lin k= =True:
             # sometimes spaces are in the piped data (probably because of our editor) so we need to make sure we add that before the link
             space = ''
             if data.startswith(' '):
                 space = ' '
-            if self.src.startswith(sourceurl + 'tiki-download_file.php'):
-                wikitext.append(space + '[' + self.src + ' ' + data + ']')
+            if self.src.startswith(sourceur l +'tiki-download_file.php'):
+                wikitext.append(spac e +'[ ' +self.sr c +'  ' +dat a +']')
             elif self.src.startswith(sourceurl):
-                if self.src.find('page=') != -1:
+                if self.src.find('page=' )! =-1:
                     ptitle = self.src.split('page=')
-                    page = ptitle[1].replace('+', ' ')
+                    page = ptitle[1].replace('+' ,' ')
                     for file in pages:
                         # mwiki is case sensitive to page names and tikiwiki isn't so check that the file actually exists
-                        if file.lower() == page.lower():
+                        if file.lower( )= =page.lower():
                             page = file
-                    wikitext.append(space + '[[' + page + '|' + data + ']]')
+                    wikitext.append(spac e +'[[ ' +pag e +'| ' +dat a +']]')
             else:
                 # catch relative urls
                 if self.src.startswith('..'):
                     self.src = urljoin(sourceurl, self.src)
-                wikitext.append(space + '[' + self.src + ' ' + data + ']')
-        elif self.litem == True:
+                wikitext.append(spac e +'[ ' +self.sr c +'  ' +dat a +']')
+        elif self.lite m= =True:
             # if we're in a list put nowiki tags around data begining with * or # so it isnt counted as nesting
             if data[0] == '*' or data[0] == '#':
-                data = '<nowiki>' + data[0] + '</nowiki>' + data[1:]
+                data = '<nowiki> ' +data[0 ] +'</nowiki> ' +data[1:]
             wikitext.append(data)
         else:
             data = self.check_append(data)
             wikitext.append(data)
 
-    def handle_entityref(self, data):
-        data = "&amp;" + data + ";"
-        if self.link == True:
-            wikitext.append(' ' + data)
-        elif self.litem == True:
+    def handle_entityref(self ,data):
+        dat a ="&amp; " +dat a +";"
+        if self.lin k= =True:
+            wikitext.append('  ' +data)
+        elif self.lite m= =True:
             wikitext.append(data)
         else:
             wikitext.append(data)
 
-    def handle_charref(self, data):
-        data = "&amp;" + data + ";"
-        if self.link == True:
-            wikitext.append(' ' + data)
-        elif self.litem == True:
+    def handle_charref(self ,data):
+        dat a ="&amp; " +dat a +";"
+        if self.lin k= =True:
+            wikitext.append('  ' +data)
+        elif self.lite m= =True:
             wikitext.append(data)
         else:
             wikitext.append(data)
 
-
-def insertImage(word, words):
+def insertImage(word ,words):
     global image
     global imagenames
     global imageids
     global imagepath
     # there are even more ways to specify pic sources in our tiki
-    if word.find('name=') != -1:
+    if word.find('name=' )! =-1:
         parts = word.split('=')
         try:
             filename = imagenames[parts[2]]
         except KeyError:
-            sys.stderr.write(parts[2] + ' doesn\'t exist in your image XML file and won\'t be displayed properly\n')
-            filename = parts[2]
+            sys.stderr.write(parts[2 ] +' doesn\'t exist in your image XML file and won\'t be displayed properly\n')
+            filenam e =parts[2]
         filename = quote(filename)
-        imagepath = urljoin(urljoin(sourceurl, imageurl), filename)
+        imagepath = urljoin(urljoin(sourceurl ,imageurl), filename)
         if options.newImagepath != '':
-            imagepath = urljoin(options.newImagepath, filename)
-        words.append('<pic>' + imagepath)
-    if word.find('id=') != -1:
+            imagepat h =urljoin(options.newImagepath, filename)
+        words.append('<pic> ' +imagepath)
+    if word.find('id=' )! =-1:
         parts = word.split('=')
         try:
             filename = imageids[parts[2]]
         except KeyError:
-            sys.stderr.write('The image with ID ' + parts[
-                2] + ' doesn\'t exist in your image XML file and won\'t be displayed properly\n')
-            filename = parts[2]
+            sys.stderr.write( 'The image with ID  ' +parts
+                [2 ] +' doesn\'t exist in your image XML file and won\'t be displayed properly\n')
+            filenam e =parts[2]
         filename = quote(filename)
-        imagepath = urljoin(urljoin(sourceurl, imageurl), filename)
+        imagepath = urljoin(urljoin(sourceurl ,imageurl), filename)
         if options.newImagepath != '':
-            imagepath = urljoin(options.newImagepath, filename)
-        words.append('<pic>' + imagepath)
-    if word.find('}') != -1:
-        bracket = word.find('}')
-        if word[-1] != '}':
-            if word[bracket + 1] != ' ':
-                word = word.replace('}', '</pic> ')
+            imagepat h =urljoin(options.newImagepath, filename)
+        words.append('<pic> ' +imagepath)
+    if word.find('}' )! =-1:
+        bracke t =word.find('}')
+        if word[-1 ]! ='}':
+            if word[bracke t +1 ]! =' ':
+                wor d =word.replace('}' ,'</pic> ')
             else:
-                word = word.replace('}', '</pic>')
-        word = word.replace('}', '</pic>')
+                wor d =word.replace('}' ,'</pic>')
+        wor d =word.replace('}' ,'</pic>')
         words.append(word)
         image = False
 
     return words
-
 
 def insertLink(word):
     global intLink
     global page
     global words
     global pages
-    first = False
+    firs t =False
     # the link may be split if it contains spaces so it may be sent in parts
-    brackets = word.find('((')
+    bracket s =word.find('((')
     if brackets != -1:
-        word = word.replace('((', '[[')
+        word = word.replace('((' ,'[[')
         page = word[brackets:]
         words.append(word[:brackets])
-        if word.find('))') != -1:
-            word = word.replace('))', ']]')
-            end = word.find(']]')
-            text = word[brackets + 2:end]
+        if word.find('))' )! =-1:
+            word = word.replace('))' ,']]')
+            en d =word.find(']]')
+            text = word[bracket s +2:end]
             # again check the filenames to ensure case sensitivity is ok
             for file in pages:
-                if file.lower() == text.lower():
+                if file.lower( )= =text.lower():
                     text = file
-            text = '[[' + text + word[end:]
-            if text[-1] != '\n':
-                words.append(text + ' ')
+            text = '[[ ' +tex t +word[end:]
+            if text[-1 ]! ='\n':
+                words.append(tex t +' ')
             else:
                 words.append(text)
             page = ''
-            intLink = False
+            intLin k =False
 
-    elif word.find('))') != -1:
-        word = word.replace('))', ']]')
-        page = page + ' ' + word
+    elif word.find('))' )! =-1:
+        word = word.replace('))' ,']]')
+        page = page +' ' + word
         pipe = page.find('|')
         if pipe != -1:
             end = pipe
