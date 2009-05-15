@@ -1,9 +1,14 @@
-#    © Crown copyright 2008 - Rosie Clarkson, Chris Eveleigh (development@planningportal.gov.uk) for the Planning Portal
+# -*- coding: utf-8 -*-
+#	© Crown copyright 2008 - Rosie Clarkson, Chris Eveleigh (development@planningportal.gov.uk) for the Planning Portal
 #
-#    You may re-use the Crown copyright protected material (not including the Royal Arms and other departmental or agency logos)
-#    free of charge in any format. The material must be acknowledged as Crown copyright and the source given.
+#	You may re-use the Crown copyright protected material (not including the Royal Arms and other departmental or agency logos)
+#	free of charge in any format. The material must be acknowledged as Crown copyright and the source given.
 #
 #
+# 23/03/2009 Patched by Miguel Tremblay, Environment Canada
+#  Script is now supposed to be functionnal
+#   with french characters in UTF-8
+########################################################
 
 import sys, os, time, tarfile
 from email.Parser import Parser
@@ -339,7 +344,8 @@ def insertLink(word):
             text = word[brackets + 2:end]
             # again check the filenames to ensure case sensitivity is ok
             for file in pages:
-                if file.lower() == text.lower():
+                if unicode(file, "Latin-1").lower() \
+                        == text.lower():
                     text = file
             text = '[[' + text + word[end:]
             if text[-1] != '\n':
@@ -361,7 +367,7 @@ def insertLink(word):
             end = brackets
             text = page[2:brackets]
         for file in pages:
-            if file.lower() == text.lower():
+            if unicode(file, "latin-1").lower() == text.lower():
                 page = page[:2] + file + page[end:]
         if page[-1] != '\n':
             words.append(page + ' ')
@@ -491,12 +497,16 @@ for member in archive:
                 title = unquote(part.get_param('pagename'))
                 outputpage = outputpage + '<title>' + title + '</title>'
             partcount += 1
-            if ('application/x-tikiwiki', '') in part.get_params():
+            if part.get_params() is not None and \
+                    ('application/x-tikiwiki', '') in part.get_params():
                 versioncount += 1
                 headings = []
+                if part.get_param('lastmodified') == None:
+                    break
                 outputpage = outputpage + '<revision>\n'
-                outputpage = outputpage + '<timestamp>' + time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(
-                    eval(part.get_param('lastmodified')))) + '</timestamp>\n'
+                outputpage = outputpage + '<timestamp>' + \
+                             time.strftime('%Y-%m-%dT%H:%M:%SZ',
+                                           time.gmtime(eval(part.get_param('lastmodified')))) + '</timestamp>\n'
                 outputpage = outputpage + '<contributor><username>' + part.get_param(
                     'author') + '</username></contributor>\n'
                 # add author to list of contributors to be output at the end
@@ -505,7 +515,8 @@ for member in archive:
                 outputpage = outputpage + '<text xml:space="preserve">\n'
                 mwiki = ''
                 # we add the tiki description to the page in bold and italic (much as it was in tikiwiki)
-                # the </br> is used to ensure that these strings are followed by a new line and are converted to \n later
+                # for them to function properly we need to ensure that these strings are followed by a new line
+                # the </br> is used as a placeholder and is converted to \n later
                 if part.get_param('description') not in (None, ''):
                     mwiki += "'''''" + unquote(part.get_param('description')) + "'''''</br>"
                 # then add the table of contents (or specify none)
@@ -519,7 +530,6 @@ for member in archive:
                 validate = False
                 validator = HTMLChecker()
                 validator.feed(mwiki)
-
                 # fixes pages that end up on a single line (these were probably created by our WYSWYG editor being used on windows and linux)
                 if not validate:
                     mwiki = mwiki.replace('\t', '    ')
@@ -527,7 +537,29 @@ for member in archive:
                     mwiki = mwiki.replace('<', '&lt;')
                     mwiki = mwiki.replace('>', '&gt;')
 
-                    mwiki = mwiki.replace('\r\n\r\n', '<br/><br/>')
+                    # make sure newlines after headings are preserved
+                    next = 0
+                    while mwiki.find('\r\n!', next) != -1 or mwiki.find('&lt;/br&gt;!', next) != -1 or mwiki[
+                                                                                                       next:].startswith(
+                            '!'):
+                        if mwiki[next:].startswith('!'):
+                            found = next
+                        else:
+                            foundreturn = mwiki.find('\r\n!', next)
+                            foundbreak = mwiki.find('&lt;/br&gt;!', next)
+                            if (foundreturn != -1 and foundreturn < foundbreak) or foundbreak == -1:
+                                found = foundreturn + 2
+                            else:
+                                found = foundbreak + 11
+
+                        next = mwiki.find('\r\n', found)
+                        if next == -1: break
+                        mwiki = mwiki[:next] + '</br>' + mwiki[next + 2:]
+                        next = next + 5
+
+                    # as validate is false the page does not contain any html so whitespace needs to be preserved
+                    mwiki = mwiki.replace('\r\n', '</br>')
+
                 # double escape < and > entities so that &lt; is not unescaped to < which is then treated as HTML tags
                 # mwiki=mwiki.replace('&amp;', '&amp;amp;')
                 mwiki = mwiki.replace('&amp;lt;', '&amp;amp;lt;')
@@ -577,10 +609,72 @@ for member in archive:
                 image = False
                 intLink = False
                 box = False
+                colour = False
+                inColourTag = False
                 page = ''
+                centre = False
                 for line in mwiki.splitlines(True):
+                    heading = False
+                    noCentre = False
+                    # if there are an odd no. of ::s don't convert to centered text
+                    if line.count('::') % 2 != 0:
+                        noCentre = True
+                    count = 0
                     spl = line.split(' ')
+                    if spl[0].find('!') == 0: heading = True
                     for word in spl:
+                        # handle headings
+                        if heading is True:
+                            if count is 0:
+                                # replace !s
+                                bangs = 0;
+                                while word[bangs] == '!':
+                                    word = word.replace('!', '=', 1)
+                                    bangs += 1
+                            if count is len(spl) - 1:
+                                # add =s to end
+                                end = word.find('\n')
+                                if end != -1:
+                                    word = word[:end] + (bangs * '=') + word[end:]
+                                else:
+                                    word = word[:end] + (bangs * '=')
+                        # handle centered text
+                        if word.find('::') != -1 and noCentre == False:
+                            next = 0
+                            while word.find('::', next) != -1:
+                                next = word.find('::')
+                                if centre == True:
+                                    centre = False
+                                    word = word.replace('::', '</center>', 1)
+                                else:
+                                    centre = True
+                                    word = word.replace('::', '<center>', 1)
+                        # handle font colours
+                        if inColourTag == True:
+                            colon = word.find(':')
+                            if colon != -1:
+                                word = word[:colon] + '">' + word[colon + 1:]
+                                inColourTag = False
+                        if word.find('~~') != -1:
+                            next = 0
+                            while word.find('~~', next) != -1:
+                                next = word.find('~~')
+                                if colour == True:
+                                    # end span
+                                    colour = False
+                                    word = word.replace('~~', '</span>', 1)
+                                else:
+                                    # start span
+                                    colour = True
+                                    colon = word.find(':', next)
+                                    extratext = ''
+                                    if colon != -1:
+                                        word = word[:next] + "<span style='color:" + word[next + 2:colon] + "'>" + word[
+                                                                                                                   colon + 1:]
+                                    else:
+                                        word = word[:next] + '<span style="color:' + word[next + 2:]
+                                        inColourTag = True
+                                next = next + 1
                         # handle boxes
                         if word.find('^') != -1:
                             hats = word.count('^')
@@ -627,6 +721,7 @@ for member in archive:
                                     words.append(word)
                                 else:
                                     words.append(word + ' ')
+                        count += 1
 
                 mwiki = ''.join(words)
                 # get rid of pic placeholder tags
@@ -682,6 +777,7 @@ for member in archive:
                                           '')  # if it's before bullets/numbers the second \n will have gone
                     mwiki = mwiki.replace("'''NOTOC'''\n", '')
 
+                outputpage = unicode(outputpage, "Latin-1")
                 outputpage = outputpage + mwiki + '</text>\n'
                 outputpage = outputpage + '</revision>\n'
                 outputpage = outputpage.encode('utf-8')
@@ -690,7 +786,7 @@ for member in archive:
                 # mediawiki has a maximum import file size so start a new file after that limit
                 if options.outputFile != '-':
                     if totalSize > options.max * 1024 * 1024:
-                        totalSize = len(outputpage)
+                        totalSize = len(unicode(outputpage, "Latin-1"))
                         mwikixml.write('</page>')
                         mwikixml.write('</mediawiki>')
                         fileCount += 1
@@ -706,7 +802,7 @@ for member in archive:
                     mwikixml.write(outputpage)
             else:
                 if partcount != 1:
-                    if stdout == False:
+                    if sys.stdout == False:
                         sys.stderr.write(str(part.get_param('pagename')) + ' version ' + str(
                             part.get_param('version')) + ' wasn\'t counted')
 
@@ -715,6 +811,6 @@ for member in archive:
             filepages[title] = uploads
         pagecount += 1
 mwikixml.write('</mediawiki>')
-sys.stderr.write('number of pages = ' + str(pagecount) + ' number of versions = ' + str(versioncount) + '\n')
+sys.stderr.write('\nnumber of pages = ' + str(pagecount) + ' number of versions = ' + str(versioncount) + '\n')
 sys.stderr.write('with contributions by ' + str(authors) + '\n')
 sys.stderr.write('and file uploads on these pages: ' + str(filepages.keys()) + '\n')
