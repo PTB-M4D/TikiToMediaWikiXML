@@ -151,6 +151,8 @@ class HTMLToMwiki(HTMLParser):
                 self.inheading = True
                 wikitext.append('\n\n====')
                 headings.append(tag)
+            else:
+                wikitext.append('<' + tag + '>')
 
     def handle_endtag(self, tag):
         if tag == 'nowiki':
@@ -214,6 +216,8 @@ class HTMLToMwiki(HTMLParser):
                 wikitext.append(br)
             if tag == 'hr':
                 wikitext.append('\n----\n')
+            else:
+                wikitext.append('</' + tag + '>')
         else:
             wikitext.append('</' + tag + '>')
 
@@ -587,11 +591,27 @@ for member in archive:
                 mwiki = mwiki.replace('<strong></strong>', '')
                 mwiki = mwiki.replace('<strong><strong>', '<strong>')
                 mwiki = mwiki.replace('</strong></strong>', '</strong>')
+                # this makes sure definitions keep their preceding newline
+                mwiki = mwiki.replace('\n;', '</br>;')
                 mwiki = mwiki.replace('\n', ' ')
                 mwiki = mwiki.replace('</br>', '\n')
                 mwiki = mwiki.replace('&lt;/br&gt;', '\n')
                 mwiki = mwiki.replace('\r', ' ')
                 mwiki = mwiki.replace('\t', ' ')
+
+                # convert === underline syntax before the html converter as
+                # headings in mwiki use =s and h3 tags will become ===heading===
+                next = 0
+                while mwiki.find('===', next) != -1:
+                    start = mwiki.find('===', next)
+                    end = mwiki.find('===', start + 3)
+
+                    if end != -1:
+                        mwiki = mwiki[:start] + '<u>' + mwiki[start + 3:end] + '</u>' + mwiki[end + 3:]
+                    next = start + 1
+                # if there is another === convert them both
+
+                print mwiki
 
                 wikitext = []
 
