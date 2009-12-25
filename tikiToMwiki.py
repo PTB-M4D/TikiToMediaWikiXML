@@ -76,18 +76,18 @@ class HTMLToMwiki(HTMLParser):
                 if self.src in url_maps:
                     self.src = url_maps[self.src]
                 # deals with uploads
-                if self.src.find('tiki-download_file.php') != -1:
+                if 'tiki-download_file.php' in self.src:
                     uploads.append(self.src)
                 self.link = True
             if tag == 'ol':
-                self.ol_count = self.ol_count + 1
-                self.list = self.list + 1
+                self.ol_count += 1
+                self.list += 1
 
             if tag == 'ul':
-                self.ul_count = self.ul_count + 1
+                self.ul_count += 1
             if tag == 'li':
                 # append the right no. of # or *s according to the level of nesting
-                self.litem = self.litem + 1
+                self.litem += 1
                 if self.list > 0:
                     wikitext.append('\n' + ('#' * self.ol_count))
                 else:
@@ -165,14 +165,14 @@ class HTMLToMwiki(HTMLParser):
             if tag == 'img':
                 wikitext.append('</pic>')
             if tag == 'ol':
-                self.ol_count = self.ol_count - 1
-                self.list = self.list - 1
+                self.ol_count -= 1
+                self.list -= 1
                 wikitext.append('\n\n')
             if tag == 'ul':
-                self.ul_count = self.ul_count - 1
+                self.ul_count -= 1
                 wikitext.append('\n\n')
             if tag == 'li':
-                self.litem = self.litem - 1
+                self.litem -= 1
             if tag == 'table':
                 wikitext.append('\n\n|}')
             if tag in ('strong', 'b'):
@@ -228,7 +228,7 @@ class HTMLToMwiki(HTMLParser):
             if stripped.startswith(symbol):
                 if wikitext != []:
                     if wikitext[:-1][:-1][-1] == '\n':
-                        if symbol.startswith('=') == False:
+                        if not symbol.startswith('='):
                             data = '<nowiki>' + symbol + '</nowiki>' + stripped[len(symbol):]
                         else:
                             if data.find(symbol, len(symbol)):
@@ -244,7 +244,7 @@ class HTMLToMwiki(HTMLParser):
             if self.src.startswith(sourceurl + 'tiki-download_file.php'):
                 wikitext.append(space + '[' + self.src + ' ' + data + ']')
             elif self.src.startswith(sourceurl):
-                if self.src.find('page=') != -1:
+                if 'page=' in self.src:
                     ptitle = self.src.split('page=')
                     page = ptitle[1].replace('+', ' ')
                     for file in pages:
@@ -257,9 +257,9 @@ class HTMLToMwiki(HTMLParser):
                 if self.src.startswith('..'):
                     self.src = urljoin(sourceurl, self.src)
                 wikitext.append(space + '[' + self.src + ' ' + data + ']')
-        elif self.litem == True:
+        elif self.litem:
             # if we're in a list put nowiki tags around data begining with * or # so it isnt counted as nesting
-            if data[0] == '*' or data[0] == '#':
+            if data[0] in ('*', '#'):
                 data = '<nowiki>' + data[0] + '</nowiki>' + data[1:]
             wikitext.append(data)
         else:
@@ -268,18 +268,18 @@ class HTMLToMwiki(HTMLParser):
 
     def handle_entityref(self, data):
         data = "&amp;" + data + ";"
-        if self.link == True:
+        if self.link:
             wikitext.append(' ' + data)
-        elif self.litem == True:
+        elif self.litem:
             wikitext.append(data)
         else:
             wikitext.append(data)
 
     def handle_charref(self, data):
         data = "&amp;" + data + ";"
-        if self.link == True:
+        if self.link:
             wikitext.append(' ' + data)
-        elif self.litem == True:
+        elif self.litem:
             wikitext.append(data)
         else:
             wikitext.append(data)
@@ -291,7 +291,7 @@ def insertImage(word, words):
     global imageids
     global imagepath
     # there are even more ways to specify pic sources in our tiki
-    if word.find('name=') != -1:
+    if 'name=' in word:
         parts = word.split('=')
         try:
             filename = imagenames[parts[2]]
@@ -303,7 +303,7 @@ def insertImage(word, words):
         if options.newImagepath != '':
             imagepath = urljoin(options.newImagepath, filename)
         words.append('<pic>' + imagepath)
-    if word.find('id=') != -1:
+    if 'id=' in word:
         parts = word.split('=')
         try:
             filename = imageids[parts[2]]
@@ -316,7 +316,7 @@ def insertImage(word, words):
         if options.newImagepath != '':
             imagepath = urljoin(options.newImagepath, filename)
         words.append('<pic>' + imagepath)
-    if word.find('}') != -1:
+    if '}' in word:
         bracket = word.find('}')
         if word[-1] != '}':
             if word[bracket + 1] != ' ':
@@ -342,7 +342,7 @@ def insertLink(word):
         word = word.replace('((', '[[')
         page = word[brackets:]
         words.append(word[:brackets])
-        if word.find('))') != -1:
+        if '))' in word:
             word = word.replace('))', ']]')
             end = word.find(']]')
             text = word[brackets + 2:end]
@@ -359,9 +359,9 @@ def insertLink(word):
             page = ''
             intLink = False
 
-    elif word.find('))') != -1:
+    elif '))' in word:
         word = word.replace('))', ']]')
-        page = page + ' ' + word
+        page += ' ' + word
         pipe = page.find('|')
         if pipe != -1:
             end = pipe
@@ -381,7 +381,7 @@ def insertLink(word):
         intLink = False
     else:
         first = False
-        page = page + ' ' + word
+        page += ' ' + word
 
 
 parser = OptionParser()
@@ -493,13 +493,13 @@ for member in archive:
         partcount = 0
         uploads = []
 
-        if mimefile.is_multipart() == False:
+        if not mimefile.is_multipart():
             partcount = 1
         for part in mimefile.walk():
             outputpage = ''
             if partcount == 1:
                 title = unquote(part.get_param('pagename'))
-                outputpage = outputpage + '<title>' + title + '</title>'
+                outputpage += '<title>' + title + '</title>'
             partcount += 1
             if part.get_params() is not None and \
                     ('application/x-tikiwiki', '') in part.get_params():
@@ -507,16 +507,15 @@ for member in archive:
                 headings = []
                 if part.get_param('lastmodified') == None:
                     break
-                outputpage = outputpage + '<revision>\n'
-                outputpage = outputpage + '<timestamp>' + \
-                             time.strftime('%Y-%m-%dT%H:%M:%SZ',
-                                           time.gmtime(eval(part.get_param('lastmodified')))) + '</timestamp>\n'
-                outputpage = outputpage + '<contributor><username>' + part.get_param(
-                    'author') + '</username></contributor>\n'
+                outputpage += '<revision>\n'
+                outputpage += '<timestamp>' + \
+                              time.strftime('%Y-%m-%dT%H:%M:%SZ',
+                                            time.gmtime(eval(part.get_param('lastmodified')))) + '</timestamp>\n'
+                outputpage += '<contributor><username>' + part.get_param('author') + '</username></contributor>\n'
                 # add author to list of contributors to be output at the end
                 if part.get_param('author') not in authors:
                     authors.append(part.get_param('author'))
-                outputpage = outputpage + '<text xml:space="preserve">\n'
+                outputpage += '<text xml:space="preserve">\n'
                 mwiki = ''
                 # we add the tiki description to the page in bold and italic (much as it was in tikiwiki)
                 # for them to function properly we need to ensure that these strings are followed by a new line
@@ -527,7 +526,7 @@ for member in archive:
                 if options.notoc:
                     mwiki = mwiki + "__NOTOC__</br>"
                 else:
-                    mwiki = mwiki + "__TOC__</br>"
+                    mwiki += "__TOC__</br>"
                 mwiki += part.get_payload().decode('utf-8')
 
                 # does the validator do anything?!
@@ -543,9 +542,7 @@ for member in archive:
 
                     # make sure newlines after headings are preserved
                     next = 0
-                    while mwiki.find('\r\n!', next) != -1 or mwiki.find('&lt;/br&gt;!', next) != -1 or mwiki[
-                                                                                                       next:].startswith(
-                            '!'):
+                    while '\r\n!' in mwiki[next:] or '&lt;/br&gt;!' in mwiki[next:] or mwiki[next:].startswith('!'):
                         if mwiki[next:].startswith('!'):
                             found = next
                         else:
@@ -559,7 +556,7 @@ for member in archive:
                         next = mwiki.find('\r\n', found)
                         if next == -1: break
                         mwiki = mwiki[:next] + '</br>' + mwiki[next + 2:]
-                        next = next + 5
+                        next += 5
 
                     # as validate is false the page does not contain any html so whitespace needs to be preserved
                     mwiki = mwiki.replace('\r\n', '</br>')
@@ -573,7 +570,7 @@ for member in archive:
                 mwiki = mwiki.replace(u'\ufffd', '&nbsp;')
 
                 # unescape XML entities
-                entitydefs = dict([("&" + k + ";", unichr(v)) for k, v in htmlentitydefs.name2codepoint.items()])
+                entitydefs = dict(("&" + k + ";", unichr(v)) for k, v in htmlentitydefs.name2codepoint.items())
                 entitydefs.pop("&amp;")
                 entitydefs.pop("&gt;")
                 entitydefs.pop("&lt;")
@@ -602,7 +599,7 @@ for member in archive:
                 # convert === underline syntax before the html converter as
                 # headings in mwiki use =s and h3 tags will become ===heading===
                 next = 0
-                while mwiki.find('===', next) != -1:
+                while '===' in mwiki[next:]:
                     start = mwiki.find('===', next)
                     end = mwiki.find('===', start + 3)
 
@@ -659,25 +656,25 @@ for member in archive:
                                 else:
                                     word = word[:end] + (bangs * '=')
                         # handle centered text
-                        if word.find('::') != -1 and noCentre == False:
+                        if '::' in word and not noCentre:
                             next = 0
-                            while word.find('::', next) != -1:
+                            while '::' in word[next:]:
                                 next = word.find('::')
-                                if centre == True:
+                                if centre:
                                     centre = False
                                     word = word.replace('::', '</center>', 1)
                                 else:
                                     centre = True
                                     word = word.replace('::', '<center>', 1)
                         # handle font colours
-                        if inColourTag == True:
+                        if inColourTag:
                             colon = word.find(':')
                             if colon != -1:
                                 word = word[:colon] + '">' + word[colon + 1:]
                                 inColourTag = False
-                        if word.find('~~') != -1:
+                        if '~~' in word:
                             next = 0
-                            while word.find('~~', next) != -1:
+                            while '~~' in word[next:]:
                                 next = word.find('~~')
                                 if colour == True:
                                     # end span
@@ -694,21 +691,21 @@ for member in archive:
                                     else:
                                         word = word[:next] + '<span style="color:' + word[next + 2:]
                                         inColourTag = True
-                                next = next + 1
+                                next += 1
                         # handle boxes
-                        if word.find('^') != -1:
+                        if '^' in word:
                             hats = word.count('^')
                             for hat in range(1, hats + 1):
                                 index = word.find('^')
-                                if box == False:
+                                if not box:
                                     word = word[:index] + '<pre>' + word[index + 1:]
                                     box = True
                                 else:
                                     word = word[:index] + '</pre>' + word[index + 1:]
                                     box = False
-                        if word.find('{img') != -1:
+                        if '{img' in word:
                             image = True
-                        if word.find('((') != -1:
+                        if '((' in word:
                             intLink = True
                         if image:
                             words = insertImage(word, words)
@@ -716,9 +713,8 @@ for member in archive:
                             insertLink(word)
                         else:
                             # stops mwiki automatically creating links (which can then be broken by formatting
-                            if (word.find('http') != -1 or word.find('ftp://') != -1) and word.find(
-                                    '[') == -1 and word.find(']') == -1 and word.find('<pic>') == -1 and word.find(
-                                    '<pre>') == -1 and word.find('</pre>') == -1 and box == False:
+                            if (
+                                    'http' in word or 'ftp://' in word) and '[' not in word and ']' not in word and '<pic>' not in word and '<pre>' not in word and '</pre>' not in word and not box:
                                 index = 0
                                 format = False
                                 formatted = ''
@@ -733,11 +729,11 @@ for member in archive:
                                             format = False
                                             formatted = formatted + '<nowiki>'
 
-                                    formatted = formatted + char
+                                    formatted += char
 
                                 word = '<nowiki>' + formatted + '</nowiki>'
                             if word != '':
-                                if word[-1].find('\n') != -1:
+                                if '\n' in word[-1]:
                                     words.append(word)
                                 else:
                                     words.append(word + ' ')
@@ -749,7 +745,7 @@ for member in archive:
                 mwiki = mwiki.replace("</pic>", "")
 
                 # make sure there are no single newlines - mediawiki just ignores them. Replace multiple lines with single and then single with double.
-                while mwiki.find("\n\n") != -1 or mwiki.find("\n \n") != -1:
+                while "\n\n" in mwiki or "\n \n" in mwiki:
                     mwiki = mwiki.replace("\n\n", "\n")
                     mwiki = mwiki.replace("\n \n", "\n")
                 mwiki = mwiki.replace('\n', '\n\n')
@@ -768,20 +764,20 @@ for member in archive:
                     lines.append(line)
                 mwiki = ''.join(lines)
 
-                entitydefs = dict([(unichr(k), "&amp;" + v + ";") for k, v in htmlentitydefs.codepoint2name.items()])
+                entitydefs = dict((unichr(k), "&amp;" + v + ";") for k, v in htmlentitydefs.codepoint2name.items())
                 entitydefs.pop('<')
                 entitydefs.pop('>')
                 entitydefs.pop('&')
                 mwiki = saxutils.escape(mwiki, entitydefs)
 
                 for n in range(len(mwiki)):
-                    if (mwiki[n] < " ") and (mwiki[n] != '\n') and (mwiki[n] != '\r') and (mwiki[n] != '\t'):
+                    if mwiki[n] < " " and mwiki[n] != '\n' and mwiki[n] != '\r' and mwiki[n] != '\t':
                         mwiki = mwiki[:n] + "?" + mwiki[n + 1:]
 
                 mwiki = mwiki.replace('amp;lt;', 'lt;')
                 mwiki = mwiki.replace('amp;gt;', 'gt;')
 
-                while mwiki.find("  ") != -1:
+                while "  " in mwiki:
                     mwiki = mwiki.replace("  ", " ")
                 mwiki = mwiki.replace('&lt;!--', '<!--')
                 mwiki = mwiki.replace('--&gt;', '-->')
@@ -798,8 +794,8 @@ for member in archive:
                     mwiki = mwiki.replace("'''NOTOC'''\n", '')
 
                 outputpage = unicode(outputpage, "Latin-1")
-                outputpage = outputpage + mwiki + '</text>\n'
-                outputpage = outputpage + '</revision>\n'
+                outputpage += mwiki + '</text>\n'
+                outputpage += '</revision>\n'
                 outputpage = outputpage.encode('utf-8')
                 totalSize += len(outputpage)
 
