@@ -226,13 +226,12 @@ class HTMLToMwiki(HTMLParser):
         stripped = data.lstrip()
         for symbol in ('----', '*', '#', '{|', '==', '===', '===='):
             if stripped.startswith(symbol):
-                if wikitext != []:
-                    if wikitext[:-1][:-1][-1] == '\n':
-                        if not symbol.startswith('='):
+                if len(wikitext) > 2 and wikitext[-3] == '\n':
+                    if not symbol.startswith('='):
+                        data = '<nowiki>' + symbol + '</nowiki>' + stripped[len(symbol):]
+                    else:
+                        if data.find(symbol, len(symbol)):
                             data = '<nowiki>' + symbol + '</nowiki>' + stripped[len(symbol):]
-                        else:
-                            if data.find(symbol, len(symbol)):
-                                data = '<nowiki>' + symbol + '</nowiki>' + stripped[len(symbol):]
         return data
 
     def handle_data(self, data):
@@ -608,7 +607,7 @@ for member in archive:
                     next = start + 1
                 # if there is another === convert them both
 
-                print mwiki
+                # print mwiki
 
                 wikitext = []
 
