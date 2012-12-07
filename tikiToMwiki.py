@@ -641,12 +641,15 @@ for member in archive:
                     for word in spl:
                         # handle headings
                         if heading is True:
-                            if count is 0:
+                            if count is 0 and word:
                                 # replace !s
                                 bangs = 0;
                                 while word[bangs] == '!':
                                     word = word.replace('!', '=', 1)
                                     bangs += 1
+                                    if bangs >= len(word):
+                                        if len(spl) == 1: bangs /= 2
+                                        break
                             if count is len(spl) - 1:
                                 # add =s to end
                                 end = word.find('\n')
