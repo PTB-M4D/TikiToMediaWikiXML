@@ -8,6 +8,7 @@
 # 23/03/2009 Patched by Miguel Tremblay, Environment Canada
 #  Script is now supposed to be functionnal
 #   with french characters in UTF-8
+# 6 Dec 2012 fix from Andrew White at Typesafe
 ########################################################
 
 import sys, os, time, tarfile
