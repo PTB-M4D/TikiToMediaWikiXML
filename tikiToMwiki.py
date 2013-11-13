@@ -631,6 +631,11 @@ for member in archive:
                 page = ''
                 centre = False
                 for line in mwiki.splitlines(True):
+                    # Convert external links to mediawiki syntax
+                    m = re.match(r'(.*)\[(.*)\|(.*)\](.*)', line)
+                    if m:
+                        line = m.group(1) + "[" + re.sub(r'(.*)&amp;(.*);(.*)', r'\1&\2\3', m.group(2)) + " " + m.group(
+                            3) + "]" + m.group(4) + "\n"
                     heading = False
                     noCentre = False
                     # if there are an odd no. of ::s don't convert to centered text
