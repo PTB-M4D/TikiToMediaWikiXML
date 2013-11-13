@@ -646,6 +646,11 @@ for member in archive:
                     line = re.sub(r'(.*){CODE\(caption=&amp;gt;(.*)\)}(.*)', r'\1<!-- \2 --><pre>\3', line)
                     line = re.sub(r'(.*){CODE}(.*)', r'\1</pre>\2', line)
 
+                    # Convert anchor
+                    line = re.sub(r'(.*){ANAME\(\)}(.*){ANAME}(.*)', r'\1<span id=&quot;\2&quot;></span>\3', line)
+                    # Convert anchor links
+                    line = re.sub(r'(.*){ALINK\(aname=(?:")?([^"]*)(?:")?\)}(.*){ALINK}(.*)', r'\1[[#\2|\3]]\4', line)
+
                     heading = False
                     noCentre = False
                     # if there are an odd no. of ::s don't convert to centered text
