@@ -17,6 +17,7 @@ from xml.dom import minidom
 import xml.parsers.expat
 import xml.sax.saxutils as saxutils
 import htmlentitydefs
+import re
 from HTMLParser import HTMLParser
 from urllib import quote, unquote
 from urlparse import urljoin
