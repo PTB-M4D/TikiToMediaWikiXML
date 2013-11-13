@@ -641,6 +641,11 @@ for member in archive:
                     if m:
                         line = m.group(1) + "[" + re.sub(r'(.*)&amp;(.*);(.*)', r'\1&\2\3', m.group(2)) + " " + m.group(
                             3) + "]" + m.group(4) + "\n"
+
+                    # Convert 'CODE' samples
+                    line = re.sub(r'(.*){CODE\(caption=&amp;gt;(.*)\)}(.*)', r'\1<!-- \2 --><pre>\3', line)
+                    line = re.sub(r'(.*){CODE}(.*)', r'\1</pre>\2', line)
+
                     heading = False
                     noCentre = False
                     # if there are an odd no. of ::s don't convert to centered text
