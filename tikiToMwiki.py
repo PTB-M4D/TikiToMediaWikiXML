@@ -597,6 +597,10 @@ for member in archive:
                 mwiki = mwiki.replace('\r', ' ')
                 mwiki = mwiki.replace('\t', ' ')
 
+                # Mediawiki automatically creates a table of content
+                mwiki = mwiki.replace('Table of content', '')
+                mwiki = mwiki.replace('{maketoc}', '')
+
                 # convert === underline syntax before the html converter as
                 # headings in mwiki use =s and h3 tags will become ===heading===
                 next = 0
