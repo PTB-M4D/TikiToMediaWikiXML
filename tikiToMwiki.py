@@ -1,4 +1,6 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#
 #	© Crown copyright 2008 - Rosie Clarkson, Chris Eveleigh (development@planningportal.gov.uk) for the Planning Portal
 #
 #	You may re-use the Crown copyright protected material (not including the Royal Arms and other departmental or agency logos)
@@ -11,16 +13,19 @@
 # 6 Dec 2012 fix from Andrew White at Typesafe
 ########################################################
 
-import sys, os, time, tarfile
-from email.Parser import Parser
+import sys, os, time, tarfile, io
+from email.parser import Parser
 from xml.dom import minidom
 import xml.parsers.expat
 import xml.sax.saxutils as saxutils
-import htmlentitydefs
+# import htmlentitydefs
+import html.entities as htmlentitydefs
 import re
-from HTMLParser import HTMLParser
-from urllib import quote, unquote
-from urlparse import urljoin
+# from HTMLParser import HTMLParser
+from html.parser import HTMLParser
+# from urllib import quote,unquote
+from urllib.parse import quote, unquote, urljoin
+# from urlparse import urljoin
 from optparse import OptionParser
 
 # add any other links you may want to map between wikis here
@@ -29,7 +34,6 @@ url_maps = {'http://tikiwiki.org/RFCWiki': 'http://meta.wikimedia.org/wiki/Cheat
 
 # checks for HTML tags
 class HTMLChecker(HTMLParser):
-
     def handle_starttag(self, tag, attrs):
         global validate
         validate = True
@@ -349,7 +353,7 @@ def insertLink(word):
             text = word[brackets + 2:end]
             # again check the filenames to ensure case sensitivity is ok
             for file in pages:
-                if unicode(file, "Latin-1").lower() \
+                if file.encode("Latin-1").lower() \
                         == text.lower():
                     text = file
             text = '[[' + text + word[end:]
@@ -372,7 +376,7 @@ def insertLink(word):
             end = brackets
             text = page[2:brackets]
         for file in pages:
-            if unicode(file, "latin-1").lower() == text.lower():
+            if file.encode("latin-1").lower() == text.lower():
                 page = page[:2] + file + page[end:]
         if page[-1] != '\n':
             words.append(page + ' ')
@@ -483,14 +487,14 @@ pagecount = 0
 versioncount = 0
 
 # write mediawiki xml file
-mwikixml.write('<mediawiki xml:lang="en">\n')
+mwikixml.write('<mediawiki xml:lang="en">\n'.encode())
 
 for member in archive:
     if member.name not in privatePages:
         # add each file in the tiki export directory
-        tikifile = archive.extractfile(member)
+        tikifile = io.TextIOWrapper(archive.extractfile(member), encoding='utf-8')
         mimefile = p.parse(tikifile)
-        mwikixml.write('<page>\n')
+        mwikixml.write('<page>\n'.encode())
         partcount = 0
         uploads = []
 
@@ -503,7 +507,7 @@ for member in archive:
                 outputpage += '<title>' + title + '</title>'
             partcount += 1
             if part.get_params() is not None and \
-                    ('application/x-tikiwiki', '') in part.get_params():
+                            ('application/x-tikiwiki', '') in part.get_params():
                 versioncount += 1
                 headings = []
                 if part.get_param('lastmodified') == None:
@@ -528,7 +532,7 @@ for member in archive:
                     mwiki = mwiki + "__NOTOC__</br>"
                 else:
                     mwiki += "__TOC__</br>"
-                mwiki += part.get_payload().decode('utf-8')
+                mwiki += part.get_payload()  # .decode('utf-8')
 
                 # does the validator do anything?!
                 validate = False
@@ -571,7 +575,7 @@ for member in archive:
                 mwiki = mwiki.replace(u'\ufffd', '&nbsp;')
 
                 # unescape XML entities
-                entitydefs = dict(("&" + k + ";", unichr(v)) for k, v in htmlentitydefs.name2codepoint.items())
+                entitydefs = dict(("&" + k + ";", chr(v)) for k, v in htmlentitydefs.name2codepoint.items())
                 entitydefs.pop("&amp;")
                 entitydefs.pop("&gt;")
                 entitydefs.pop("&lt;")
@@ -614,6 +618,7 @@ for member in archive:
                 # if there is another === convert them both
 
                 # print mwiki
+
 
                 wikitext = []
 
@@ -787,7 +792,7 @@ for member in archive:
                     lines.append(line)
                 mwiki = ''.join(lines)
 
-                entitydefs = dict((unichr(k), "&amp;" + v + ";") for k, v in htmlentitydefs.codepoint2name.items())
+                entitydefs = dict((chr(k), "&amp;" + v + ";") for k, v in htmlentitydefs.codepoint2name.items())
                 entitydefs.pop('<')
                 entitydefs.pop('>')
                 entitydefs.pop('&')
@@ -816,7 +821,8 @@ for member in archive:
                                           '')  # if it's before bullets/numbers the second \n will have gone
                     mwiki = mwiki.replace("'''NOTOC'''\n", '')
 
-                outputpage = unicode(outputpage, "Latin-1")
+                #				outputpage = unicode(outputpage, "Latin-1")
+                #				outputpage = outputpage.encode("Latin-1")
                 outputpage += mwiki + '</text>\n'
                 outputpage += '</revision>\n'
                 outputpage = outputpage.encode('utf-8')
@@ -825,17 +831,18 @@ for member in archive:
                 # mediawiki has a maximum import file size so start a new file after that limit
                 if options.outputFile != '-':
                     if totalSize > options.max * 1024 * 1024:
-                        totalSize = len(unicode(outputpage, "Latin-1"))
-                        mwikixml.write('</page>')
-                        mwikixml.write('</mediawiki>')
+                        totalSize = len(outputpage)
+                        mwikixml.write('</page>'.encode())
+                        mwikixml.write('</mediawiki>'.encode())
+                        mwikixml.close()
                         fileCount += 1
                         mwikixml = open(outputFile[:-4] + str(fileCount) + outputFile[-4:], 'wb')
                         sys.stderr.write(
                             'Creating new wiki xml file ' + outputFile[:-4] + str(fileCount) + outputFile[-4:] + '\n')
-                        mwikixml.write('<mediawiki xml:lang="en">\n')
+                        mwikixml.write('<mediawiki xml:lang="en">\n'.encode())
                         # if this isn't the first part write page and title
-                        mwikixml.write('<page>\n')
-                        mwikixml.write('<title>' + title + '</title>')
+                        mwikixml.write('<page>\n'.encode())
+                        mwikixml.write(('<title>' + title + '</title>').encode())
                     mwikixml.write(outputpage)
                 else:
                     mwikixml.write(outputpage)
@@ -845,11 +852,11 @@ for member in archive:
                         sys.stderr.write(str(part.get_param('pagename')) + ' version ' + str(
                             part.get_param('version')) + ' wasn\'t counted')
 
-        mwikixml.write('</page>')
+        mwikixml.write('</page>'.encode())
         if uploads != []:
             filepages[title] = uploads
         pagecount += 1
-mwikixml.write('</mediawiki>')
+mwikixml.write('</mediawiki>'.encode())
 sys.stderr.write('\nnumber of pages = ' + str(pagecount) + ' number of versions = ' + str(versioncount) + '\n')
 sys.stderr.write('with contributions by ' + str(authors) + '\n')
 sys.stderr.write('and file uploads on these pages: ' + str(filepages.keys()) + '\n')
