@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-#	© Crown copyright 2008 - Rosie Clarkson, Chris Eveleigh (development@planningportal.gov.uk) for the Planning Portal
+# Convert TikiWiki content to MediaWiki content.
 #
-#	You may re-use the Crown copyright protected material (not including the Royal Arms and other departmental or agency logos)
-#	free of charge in any format. The material must be acknowledged as Crown copyright and the source given.
+# Code taken from
+# https://www.mediawiki.org/w/index.php?title=Manual:TikiWiki_Conversion
 #
+# and commit history extracted from this wiki page's revision history with
+# all available information.
 #
-# 23/03/2009 Patched by Miguel Tremblay, Environment Canada
-#  Script is now supposed to be functionnal
-#   with french characters in UTF-8
-# 6 Dec 2012 fix from Andrew White at Typesafe
-########################################################
+# Code was originally developed by Rosie Clarkson, Chris Eveleigh
+# <development@planningportal.gov.uk> under the © Crown copyright 2008 for the
+# Planning Portal. All later developments as far as documented in the
+# original revision history is inserted in the commit history of this
+# repository.
+#
+# © copyright PTB 2018, T. Bruns, B.Ludwig
 
 import sys, os, time, tarfile, io
 from email.parser import Parser
