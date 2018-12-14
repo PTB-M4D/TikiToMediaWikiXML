@@ -440,7 +440,7 @@ parser.add_option("-p", "--privatepages", action="store", type="string",
                   help="an XML file containing any private pages not to be "
                        "added to the wiki")
 parser.add_option("-o", "--outputfile", action="store", type="string",
-                  dest="outputFile", default='',
+                  dest="outputfile", default='',
                   help="the name of the output wiki XML file(s)")
 parser.add_option("-k", "--imagexml", action="store", type="string",
                   dest="imagexml", default='',
@@ -456,10 +456,10 @@ if len(args) > 1:
     archive = tarfile.open(args[1])
     # add all files in the export tar to the list of pages
     pages = archive.getnames()
-    if options.outputFile == '':
-        outputFile = args[1].replace('.tar', '.xml')
+    if options.outputfile == '':
+        outputfile = args[1].replace('.tar', '.xml')
     else:
-        outputFile = options.outputFile
+        outputfile = options.outputfile
 else:
     pages = []
     # if reading from stdin you can't iterate through the files again so
@@ -467,8 +467,9 @@ else:
     archive = tarfile.open(name=sys.stdin.name, mode='r|', fileobj=sys.stdin)
     # if you're reading from stdin and don't specify an output file output to
     # stdout
-    if options.outputFile == '':
-        options.outputFile = '-'
+    if options.outputfile == '':
+        options.outputfile = '-'
+    outputfile = options.outputfile
 p = Parser()
 
 # multiple files may be created so this is added to the output file string to
@@ -476,12 +477,12 @@ p = Parser()
 fileCount = 0
 
 # the string to name all outputfiles the fileCount is added to this
-if options.outputFile == '-':
+if options.outputfile == '-':
     mwikixml = sys.stdout
 else:
-    mwikixml = open(outputFile[:-4] + str(fileCount) + outputFile[-4:], 'wb')
-    sys.stderr.write('Creating new wiki xml file ' + outputFile[:-4]
-                     + str(fileCount) + outputFile[-4:])
+    mwikixml = open(outputfile[:-4] + str(fileCount) + outputfile[-4:], 'wb')
+    sys.stdout.write('Creating new wiki xml file ' + outputfile[:-4]
+                     + str(fileCount) + outputfile[-4:])
 
 # the source URL of the TikiWiki - in the form http://[your url]/tiki/
 sourceurl = args[0]
@@ -910,18 +911,18 @@ for member in archive:
 
                 # MediaWiki has a maximum import file size so start a new
                 # file after that limit
-                if options.outputFile != '-':
+                if options.outputfile != '-':
                     if totalSize > options.max * 1024 * 1024:
                         totalSize = len(outputpage)
                         mwikixml.write('</page>'.encode())
                         mwikixml.write('</mediawiki>'.encode())
                         mwikixml.close()
                         fileCount += 1
-                        mwikixml = open(outputFile[:-4] + str(fileCount) +
-                                        outputFile[-4:], 'wb')
-                        sys.stderr.write(
-                            'Creating new wiki xml file ' + outputFile[:-4] +
-                            str(fileCount) + outputFile[-4:] + '\n')
+                        mwikixml = open(outputfile[:-4] + str(fileCount) +
+                                        outputfile[-4:], 'wb')
+                        sys.stdout.write(
+                            '\nCreating new wiki xml file ' + outputfile[:-4] +
+                            str(fileCount) + outputfile[-4:] + '\n')
                         mwikixml.write('<mediawiki xml:lang="en">\n'.encode())
                         # if this isn't the first part write page and title
                         mwikixml.write('<page>\n'.encode())
@@ -933,7 +934,7 @@ for member in archive:
             else:
                 if partcount != 1:
                     if not sys.stdout:
-                        sys.stderr.write(str(
+                        sys.stdout.write(str(
                             part.get_param('pagename')) + ' version ' + str(
                             part.get_param('version')) + ' wasn\'t counted')
 
@@ -942,9 +943,8 @@ for member in archive:
             filepages[title] = uploads
         pagecount += 1
 mwikixml.write('</mediawiki>'.encode())
-sys.stderr.write(
-    '\nnumber of pages = ' + str(pagecount) + ' number of versions = ' + str(
-        versioncount) + '\n')
-sys.stderr.write('with contributions by ' + str(authors) + '\n')
-sys.stderr.write(
+sys.stdout.write('\nnumber of pages = ' + str(pagecount)
+                 + ' number of versions = ' + str(versioncount) + '\n')
+sys.stdout.write('with contributions by ' + str(authors) + '\n')
+sys.stdout.write(
     'and file uploads on these pages: ' + str(filepages.keys()) + '\n')
