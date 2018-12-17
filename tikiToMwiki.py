@@ -525,8 +525,12 @@ filepages = {}
 pagecount = 0
 versioncount = 0
 
-# write MediaWiki xml file
+# Start writing to the specified output.
 mwikixml.write('<mediawiki xml:lang="en">\n'.encode())
+header = '<siteinfo>\n' \
+         '<base>' + sourceurl + '</base>\n' \
+                                '</siteinfo>\n'
+mwikixml.write(header.encode())
 
 for member in archive:
     if member.name not in privatePages:
@@ -544,7 +548,7 @@ for member in archive:
             outputpage = ''
             if partcount == 1:
                 title = unquote(part.get_param('pagename'))
-                outputpage += '<title>' + title + '</title>'
+                outputpage += '<title>' + title + '</title>\n'
             partcount += 1
             if part.get_params() is not None and \
                     ('application/x-tikiwiki', '') in part.get_params():
@@ -576,7 +580,6 @@ for member in archive:
                     mwiki = mwiki + "__NOTOC__</br>"
                 else:
                     mwiki += "__TOC__</br>"
-                # .decode('utf-8')
                 mwiki += part.get_payload()
 
                 # does the validator do anything?!
@@ -849,9 +852,10 @@ for member in archive:
                 # make sure there are no single newlines - MediaWiki just
                 # ignores them. Replace multiple lines with single and then
                 # single with double.
-                while "\n\n" in mwiki or "\n \n" in mwiki:
-                    mwiki = mwiki.replace("\n\n", "\n")
+                while "\n \n" in mwiki:
                     mwiki = mwiki.replace("\n \n", "\n")
+                while "\n\n" in mwiki:
+                    mwiki = mwiki.replace("\n\n", "\n")
                 mwiki = mwiki.replace('\n', '\n\n')
 
                 # replace multiple lines with single where they would break
@@ -915,11 +919,11 @@ for member in archive:
                             part.get_param('pagename')) + ' version ' + str(
                             part.get_param('version')) + ' wasn\'t counted')
 
-        mwikixml.write('</page>'.encode())
+        mwikixml.write('</page>\n'.encode())
         if uploads:
             filepages[title] = uploads
         pagecount += 1
-mwikixml.write('</mediawiki>'.encode())
+mwikixml.write('</mediawiki>\n'.encode())
 sys.stdout.write('\nnumber of pages = ' + str(pagecount)
                  + ' number of versions = ' + str(versioncount) + '\n')
 sys.stdout.write('with contributions by ' + str(authors) + '\n')
