@@ -909,28 +909,8 @@ for member in archive:
                 outputpage = outputpage.encode('utf-8')
                 totalSize += len(outputpage)
 
-                # MediaWiki has a maximum import file size so start a new
-                # file after that limit
-                if options.outputfile != '-':
-                    if totalSize > options.max * 1024 * 1024:
-                        totalSize = len(outputpage)
-                        mwikixml.write('</page>'.encode())
-                        mwikixml.write('</mediawiki>'.encode())
-                        mwikixml.close()
-                        fileCount += 1
-                        mwikixml = open(outputfile[:-4] + str(fileCount) +
-                                        outputfile[-4:], 'wb')
-                        sys.stdout.write(
-                            '\nCreating new wiki xml file ' + outputfile[:-4] +
-                            str(fileCount) + outputfile[-4:] + '\n')
-                        mwikixml.write('<mediawiki xml:lang="en">\n'.encode())
-                        # if this isn't the first part write page and title
-                        mwikixml.write('<page>\n'.encode())
-                        mwikixml.write(('<title>' + title +
-                                        '</title>').encode())
-                    mwikixml.write(outputpage)
-                else:
-                    mwikixml.write(outputpage)
+                # Write the contents of `outputpage` to the specified output.
+                mwikixml.write(outputpage)
             else:
                 if partcount != 1:
                     if not sys.stdout:
