@@ -39,7 +39,7 @@ url_maps = {'http://tikiwiki.org/RFCWiki':
 class HTMLChecker(HTMLParser):
     # HTMLChecker actually should implement the abstract method
     # _markupbase.ParserBase.error() which we don't do because the method is
-    # kind of deprecated since Python 3.5 (see 
+    # kind of deprecated since Python 3.5 (see
     # https://bugs.python.org/issue31844)
 
     def handle_starttag(self, tag, attrs):
@@ -480,9 +480,8 @@ fileCount = 0
 if options.outputfile == '-':
     mwikixml = sys.stdout
 else:
-    mwikixml = open(outputfile[:-4] + str(fileCount) + outputfile[-4:], 'wb')
-    sys.stdout.write('Creating new wiki xml file ' + outputfile[:-4]
-                     + str(fileCount) + outputfile[-4:])
+    mwikixml = open(outputfile, 'wb')
+    sys.stdout.write('Creating new wiki xml file ' + outputfile)
 
 # the source URL of the TikiWiki - in the form http://[your url]/tiki/
 sourceurl = args[0]
@@ -523,7 +522,6 @@ if options.imagexml != '':
 # list of users who have edited pages
 authors = []
 filepages = {}
-totalSize = 0
 pagecount = 0
 versioncount = 0
 
@@ -907,7 +905,6 @@ for member in archive:
                 outputpage += mwiki + '</text>\n'
                 outputpage += '</revision>\n'
                 outputpage = outputpage.encode('utf-8')
-                totalSize += len(outputpage)
 
                 # Write the contents of `outputpage` to the specified output.
                 mwikixml.write(outputpage)
