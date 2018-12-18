@@ -794,18 +794,6 @@ for member in archive:
                                                + elem[next_elem + 2:]
                                         inColourTag = True
                                 next_elem += 1
-                        # handle boxes
-                        if '^' in elem:
-                            hats = elem.count('^')
-                            for hat in range(1, hats + 1):
-                                index = elem.find('^')
-                                elem = elem[:index] + '<pre>' + elem[index + 1:]
-                                if not box:
-                                    box = True
-                                else:
-                                    elem = elem[:index] + '</pre>' \
-                                           + elem[index + 1:]
-                                    box = False
                         if '{img' in elem:
                             image = True
                         if '((' in elem:
