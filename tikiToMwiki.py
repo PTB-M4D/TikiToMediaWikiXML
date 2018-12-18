@@ -716,11 +716,11 @@ for member in archive:
                     line = re.sub(r'(.*){CODE}(.*)', r'\1</pre>\2', line)
 
                     # Convert anchor
-                    line = re.sub(r'(.*){ANAME\(\)}(.*){ANAME}(.*)',
-                                  r'\1<span id=&quot;\2&quot;></span>\3', line)
+                    line = re.sub(r'{ANAME\(\)}(.*){ANAME}',
+                                  r'<span id=&quot;\1&quot;></span>', line)
                     # Convert anchor links
-                    line = re.sub(r'(.*){ALINK\(aname=(?:")?([^"]*)(?:")?\)}('
-                                  r'.*){ALINK}(.*)', r'\1[[#\2|\3]]\4', line)
+                    line = re.sub(r'{ALINK\(aname=(?:")?([^"]*)(?:")?\)}('
+                                  r'.*){ALINK}', r'[[#\1|\2]]', line)
 
                     heading = False
                     noCentre = False
