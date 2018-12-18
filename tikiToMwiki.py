@@ -857,6 +857,9 @@ for member in archive:
                     mwiki = mwiki.replace("\n\n", "\n")
                 mwiki = mwiki.replace('\n', '\n\n')
 
+                # Add one space to bullet points.
+                mwiki = mwiki.replace('\n*', '\n* ')
+
                 # replace multiple lines with single where they would break
                 # formatting - such as in a list
                 mwiki = mwiki.replace('\n\n#', '\n#')
