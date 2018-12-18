@@ -655,7 +655,6 @@ for member in archive:
                 mwiki = mwiki.replace('</strong></strong>', '</strong>')
                 # this makes sure definitions keep their preceding newline
                 mwiki = mwiki.replace('\n;', '</br>;')
-                mwiki = mwiki.replace('\n', ' ')
                 mwiki = mwiki.replace('</br>', '\n')
                 mwiki = mwiki.replace('&lt;/br&gt;', '\n')
                 mwiki = mwiki.replace('\r', ' ')
