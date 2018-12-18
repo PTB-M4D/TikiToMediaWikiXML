@@ -541,14 +541,15 @@ for member in archive:
         mwikixml.write('<page>\n'.encode())
         partcount = 0
         uploads = []
+        revisions = []
 
         if not mimefile.is_multipart():
             partcount = 1
         for part in mimefile.walk():
-            outputpage = ''
+            revision = ''
             if partcount == 1:
                 title = unquote(part.get_param('pagename'))
-                outputpage += '<title>' + title + '</title>\n'
+                mwikixml.write(('<title>' + title + '</title>\n').encode())
             partcount += 1
             if part.get_params() is not None and \
                     ('application/x-tikiwiki', '') in part.get_params():
@@ -556,16 +557,16 @@ for member in archive:
                 headings = []
                 if part.get_param('lastmodified') is None:
                     break
-                outputpage += '<revision>\n'
-                outputpage += '<timestamp>' + time.strftime(
+                revision += '<revision>\n'
+                revision += '<timestamp>' + time.strftime(
                     '%Y-%m-%dT%H:%M:%SZ', time.gmtime(eval(part.get_param(
                         'lastmodified')))) + '</timestamp>\n'
-                outputpage += '<contributor><username>' + part.get_param(
+                revision += '<contributor><username>' + part.get_param(
                     'author') + '</username></contributor>\n'
                 # add author to list of contributors to be output at the end
                 if part.get_param('author') not in authors:
                     authors.append(part.get_param('author'))
-                outputpage += '<text xml:space="preserve">\n'
+                revision += '<text xml:space="preserve">\n'
                 mwiki = ''
                 # we add the TikiWiki description to the page in bold and
                 # italic (much as it was in TikiWiki ) for them to function
@@ -899,18 +900,23 @@ for member in archive:
                 mwiki = mwiki.replace("'''TOC'''", '__TOC__')
                 mwiki = mwiki.replace("'''NOTOC'''", '__NOTOC__')
 
-                outputpage += mwiki + '</text>\n'
-                outputpage += '</revision>\n'
-                outputpage = outputpage.encode('utf-8')
-
-                # Write the contents of `outputpage` to the specified output.
-                mwikixml.write(outputpage)
+                revision += mwiki + '</text>\n'
+                revision += '</revision>\n'
+                revisions.append(revision.encode('utf-8'))
             else:
                 if partcount != 1:
                     if not sys.stdout:
                         sys.stdout.write(str(
                             part.get_param('pagename')) + ' version ' + str(
                             part.get_param('version')) + ' wasn\'t counted')
+
+        # Write the contents of `revisions` to the specified output in
+        # reverse order to get newest entry last. That maybe unimportant to
+        # MediaWiki, but importing the result to XWiki as MediaWiki-Export
+        # requires this sorting.
+        while revisions:
+
+            mwikixml.write(revisions.pop(-1))
 
         mwikixml.write('</page>\n'.encode())
         if uploads:
