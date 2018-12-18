@@ -893,18 +893,8 @@ for member in archive:
                 mwiki = mwiki.replace('&lt;!--', '<!--')
                 mwiki = mwiki.replace('--&gt;', '-->')
 
-                # the table of contents will have been seen as bold formatting
-                if len(headings) >= 3:
-                    mwiki = mwiki.replace("'''TOC'''", '__TOC__')
-                    mwiki = mwiki.replace("'''NOTOC'''", '__NOTOC__')
-                else:
-                    mwiki = mwiki.replace("'''TOC'''\n\n", '')
-                    mwiki = mwiki.replace("'''NOTOC'''\n\n", '')
-                    # if it's before bullets/numbers the second \n will have
-                    # gone
-                    mwiki = mwiki.replace("'''TOC'''\n",
-                                          '')
-                    mwiki = mwiki.replace("'''NOTOC'''\n", '')
+                mwiki = mwiki.replace("'''TOC'''", '__TOC__')
+                mwiki = mwiki.replace("'''NOTOC'''", '__NOTOC__')
 
                 outputpage += mwiki + '</text>\n'
                 outputpage += '</revision>\n'
