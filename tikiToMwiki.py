@@ -710,10 +710,23 @@ for member in archive:
                             r'(.*)&amp;(.*);('r'.*)', r'\1&\2\3', m.group(2))\
                                + " " + m.group(3) + "]" + m.group(4) + "\n"
 
-                    # Convert 'CODE' samples
-                    line = re.sub(r'(.*){CODE\(caption=&amp;gt;(.*)\)}(.*)',
-                                  r'\1<!-- \2 --><pre>\3', line)
-                    line = re.sub(r'(.*){CODE}(.*)', r'\1</pre>\2', line)
+                    # Convert 'CODE' samples to MediaWiki syntax
+                    line = re.sub(r'{CODE\(caption=&amp;gt;(.*)\)}',
+                                  r'<!-- \1 --><source>', line)
+                    line = re.sub(r'{CODE\((.*)\)}',
+                                  r'<source>', line)
+                    line = re.sub(r'{CODE}', r'</source>', line)
+
+                    # Convert formulas to XWiki syntax
+                    line = re.sub(r'{HTML\(\)}\\[(,\[]',
+                                  r'<math>', line)
+                    line = re.sub(r'{HTML\(\)}', '<math>', line)
+                    line = re.sub(r'\\[(,\[]', '', line)
+                    line = re.sub(r'\\[),\]]{HTML}', r'</math>', line)
+                    line = re.sub(r'{HTML}', r'</math>', line)
+                    # line = re.sub(r'\\[),\]]', '', line)
+                    line = re.sub(r'\\varphi', r'\\phi', line)
+
 
                     # Convert anchor
                     line = re.sub(r'{ANAME\(\)}(.*){ANAME}',
