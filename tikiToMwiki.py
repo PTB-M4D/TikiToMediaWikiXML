@@ -558,6 +558,7 @@ for member in archive:
                 if part.get_param('lastmodified') is None:
                     break
                 revision += '<revision>\n'
+                revision += '<id>REV_ID_PLACEHOLDER</id>\n'
                 revision += '<timestamp>' + time.strftime(
                     '%Y-%m-%dT%H:%M:%SZ', time.gmtime(eval(part.get_param(
                         'lastmodified')))) + '</timestamp>\n'
@@ -902,7 +903,7 @@ for member in archive:
 
                 revision += mwiki + '</text>\n'
                 revision += '</revision>\n'
-                revisions.append(revision.encode('utf-8'))
+                revisions.append(revision)
             else:
                 if partcount != 1:
                     if not sys.stdout:
@@ -915,8 +916,18 @@ for member in archive:
         # MediaWiki, but importing the result to XWiki as MediaWiki-Export
         # requires this sorting.
         while revisions:
+            revision = str(revisions.pop(-1))
+            if revisions:
+                revision = revision.replace(
+                    '<id>REV_ID_PLACEHOLDER</id>\n',
+                    '<id>' + str(len(revisions) + 1) + '</id>\n<parentid>' +
+                    str(len(revisions)) + '</parentid>\n')
+            else:
+                revision = revision.replace(
+                    '<id>REV_ID_PLACEHOLDER</id>\n',
+                    '<id>' + str(len(revisions) + 1) + '</id>\n')
 
-            mwikixml.write(revisions.pop(-1))
+            mwikixml.write(revision.encode())
 
         mwikixml.write('</page>\n'.encode())
         if uploads:
