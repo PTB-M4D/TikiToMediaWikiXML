@@ -887,6 +887,7 @@ for member in archive:
                 mwiki = mwiki.replace('amp;lt;', 'lt;')
                 mwiki = mwiki.replace('amp;gt;', 'gt;')
 
+                # Replace double spaces by single space.
                 while "  " in mwiki:
                     mwiki = mwiki.replace("  ", " ")
                 mwiki = mwiki.replace('&lt;!--', '<!--')
