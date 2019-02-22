@@ -717,7 +717,13 @@ for member in archive:
                                   r'<source>', line)
                     line = re.sub(r'{CODE}', r'</source>', line)
 
-                    # Convert formulas to XWiki syntax
+                    # Convert formulas to XWiki syntax TODO convert <math> to
+                    #  final syntax in XML of:
+                    # {{formula &#124; a(t) &#124; fontsize=SMALLER}}
+                    # which represents a MediaWiki tag 'formula' with
+                    # parameter 'fontsize' set to 'SMALLER' and encapsulating
+                    # 'a(t)'. The only unsolved problem with this is,
+                    # it breaks, when enclosed formula includes a '='.
                     line = re.sub(r'{HTML\(\)}\\[(,\[]',
                                   r'<math>', line)
                     line = re.sub(r'{HTML\(\)}', '<math>', line)
