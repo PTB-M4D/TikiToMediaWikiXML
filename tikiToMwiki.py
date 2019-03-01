@@ -28,7 +28,7 @@ from email.parser import Parser
 from html.parser import HTMLParser
 from optparse import OptionParser
 from urllib.parse import quote, unquote, urljoin
-from xml.dom import minidom
+from defusedxml import minidom
 
 # add any other links you may want to map between wikis here
 url_maps = {'http://tikiwiki.org/RFCWiki': 
