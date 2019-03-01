@@ -885,10 +885,10 @@ for member in archive:
                 entitydefs.pop('&')
                 mwiki = saxutils.escape(mwiki, entitydefs)
 
-                for n in range(len(mwiki)):
-                    if mwiki[n] < " " and mwiki[n] != '\n' and mwiki[n] != \
-                            '\r' and mwiki[n] != '\t':
-                        mwiki = mwiki[:n] + "?" + mwiki[n + 1:]
+                for index, value in enumerate(mwiki):
+                    if value < " " and value != '\n' and value != \
+                            '\r' and value != '\t':
+                        mwiki = mwiki[:index] + "?" + mwiki[index + 1:]
 
                 mwiki = mwiki.replace('amp;lt;', 'lt;')
                 mwiki = mwiki.replace('amp;gt;', 'gt;')
