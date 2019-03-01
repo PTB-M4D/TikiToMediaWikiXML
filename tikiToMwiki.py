@@ -306,23 +306,23 @@ class HTMLToMwiki(HTMLParser):
             data = self.check_append(data)
             wikitext.append(data)
 
-    def handle_entityref(self, data):
-        data = "&amp;" + data + ";"
+    def handle_entityref(self, name):
+        name = "&amp;" + name + ";"
         if self.link:
-            wikitext.append(' ' + data)
+            wikitext.append(' ' + name)
         elif self.litem:
-            wikitext.append(data)
+            wikitext.append(name)
         else:
-            wikitext.append(data)
+            wikitext.append(name)
 
-    def handle_charref(self, data):
-        data = "&amp;" + data + ";"
+    def handle_charref(self, name):
+        name = "&amp;" + name + ";"
         if self.link:
-            wikitext.append(' ' + data)
+            wikitext.append(' ' + name)
         elif self.litem:
-            wikitext.append(data)
+            wikitext.append(name)
         else:
-            wikitext.append(data)
+            wikitext.append(name)
 
 
 def insert_image(word):
