@@ -722,8 +722,9 @@ for member in archive:
                     # {{formula &#124; a(t) &#124; fontsize=SMALLER}}
                     # which represents a MediaWiki tag 'formula' with
                     # parameter 'fontsize' set to 'SMALLER' and encapsulating
-                    # 'a(t)'. The only unsolved problem with this is,
-                    # it breaks, when enclosed formula includes a '='.
+                    # 'a(t)'. An important addition to the algorithm will be
+                    # to add a replacement of '=' by '\equal' because
+                    # otherwise '=' breaks the formula.
                     line = re.sub(r'{HTML\(\)}\\[(,\[]',
                                   r'<math>', line)
                     line = re.sub(r'{HTML\(\)}', '<math>', line)
