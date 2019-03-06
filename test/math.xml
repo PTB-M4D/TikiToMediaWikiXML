@@ -1,0 +1,27 @@
+<mediawiki xml:lang="en">
+<siteinfo>
+<base>https://fb1-7.bs.ptb.de/tiki/</base>
+</siteinfo>
+<page>
+<title>Math testpage</title>
+<revision>
+<id>1</id>
+<timestamp>2018-03-12T12:38:31Z</timestamp>
+<contributor><username>mustermann</username></contributor>
+<text xml:space="preserve">
+__TOC__
+
+&lt;math&gt;
+
+a(t) \equal \frac{1}{2}\left[
+
+a_1 sin(\omega t) + a_2 sin(\omega t - \phi_0)
+
+\right]
+
+&lt;/math&gt;
+
+</text>
+</revision>
+</page>
+</mediawiki>
