@@ -28,10 +28,11 @@ from email.parser import Parser
 from html.parser import HTMLParser
 from optparse import OptionParser
 from urllib.parse import quote, unquote, urljoin
-from xml.dom import minidom
+
+from defusedxml import minidom
 
 # add any other links you may want to map between wikis here
-url_maps = {'http://tikiwiki.org/RFCWiki': 
+url_maps = {'http://tikiwiki.org/RFCWiki':
             'http://meta.wikimedia.org/wiki/Cheatsheet'}
 
 
@@ -52,9 +53,9 @@ class HTMLChecker(HTMLParser):
         return True
 
 
-# MediaWiki relies on having the right number of new lines between syntax - 
-# for example having two new lines in a list starts a new list. The elements 
-# that do/don't start a new line in HTML can be controlled by the CSS. The 
+# MediaWiki relies on having the right number of new lines between syntax -
+# for example having two new lines in a list starts a new list. The elements
+# that do/don't start a new line in HTML can be controlled by the CSS. The
 # CSS used depends on which skin you're using.
 class HTMLToMwiki(HTMLParser):
     global wikitext
@@ -72,10 +73,10 @@ class HTMLToMwiki(HTMLParser):
     instrong = False
     # if the parser is within a heading
     inheading = False
-    # whether the parser is within an ordered list (is numeric to deal with 
+    # whether the parser is within an ordered list (is numeric to deal with
     # nested lists)
     list = 0
-    # whether the parser is within a list item - in order to deal with <p> 
+    # whether the parser is within a list item - in order to deal with <p>
     # and <br/> tags in ways that wont break it
     litem = 0
     # the number of ul tags used for nested lists
@@ -112,7 +113,7 @@ class HTMLToMwiki(HTMLParser):
             if tag == 'ul':
                 self.ul_count += 1
             if tag == 'li':
-                # append the right no. of # or *s according to the level of 
+                # append the right no. of # or *s according to the level of
                 # nesting
                 self.litem += 1
                 if self.list > 0:
@@ -125,7 +126,7 @@ class HTMLToMwiki(HTMLParser):
                     if att[0] == 'src':
                         src = att[1]
                 src = quote(src)
-                # we have several different ways of specifying image sources 
+                # we have several different ways of specifying image sources
                 # in our TikiWiki
                 imagepath = urljoin(sourceurl, src)
                 if options.newImagepath != '':
@@ -157,14 +158,14 @@ class HTMLToMwiki(HTMLParser):
                 self.inem = True
                 wikitext.append("''")
             if tag == 'p':
-                # new lines in the middle of lists break the list so we have 
+                # new lines in the middle of lists break the list so we have
                 # to use the break tag
                 if self.litem == 0:
                     br = '\n'
                 else:
                     br = '<br/>'
-                # newlines in the middle of formatted text break the 
-                # formatting so we have to end and restart the formatting 
+                # newlines in the middle of formatted text break the
+                # formatting so we have to end and restart the formatting
                 # around the new lines
                 if self.inem:
                     br = "''" + br + br + "''"
@@ -305,23 +306,23 @@ class HTMLToMwiki(HTMLParser):
             data = self.check_append(data)
             wikitext.append(data)
 
-    def handle_entityref(self, data):
-        data = "&amp;" + data + ";"
+    def handle_entityref(self, name):
+        name = "&amp;" + name + ";"
         if self.link:
-            wikitext.append(' ' + data)
+            wikitext.append(' ' + name)
         elif self.litem:
-            wikitext.append(data)
+            wikitext.append(name)
         else:
-            wikitext.append(data)
+            wikitext.append(name)
 
-    def handle_charref(self, data):
-        data = "&amp;" + data + ";"
+    def handle_charref(self, name):
+        name = "&amp;" + name + ";"
         if self.link:
-            wikitext.append(' ' + data)
+            wikitext.append(' ' + name)
         elif self.litem:
-            wikitext.append(data)
+            wikitext.append(name)
         else:
-            wikitext.append(data)
+            wikitext.append(name)
 
 
 def insert_image(word):
@@ -707,7 +708,7 @@ for member in archive:
                     m = re.match(r'(.*)\[(.*)\|(.*)\](.*)', line)
                     if m:
                         line = m.group(1) + "[" + re.sub(
-                            r'(.*)&amp;(.*);('r'.*)', r'\1&\2\3', m.group(2))\
+                            r'(.*)&amp;(.*);('r'.*)', r'\1&\2\3', m.group(2)) \
                                + " " + m.group(3) + "]" + m.group(4) + "\n"
 
                     # Convert 'CODE' samples to MediaWiki syntax
@@ -726,7 +727,6 @@ for member in archive:
                     line = re.sub(r'{HTML}', r'</math>', line)
                     # line = re.sub(r'\\[),\]]', '', line)
                     line = re.sub(r'\\varphi', r'\\phi', line)
-
 
                     # Convert anchor
                     line = re.sub(r'{ANAME\(\)}(.*){ANAME}',
@@ -885,10 +885,10 @@ for member in archive:
                 entitydefs.pop('&')
                 mwiki = saxutils.escape(mwiki, entitydefs)
 
-                for n in range(len(mwiki)):
-                    if mwiki[n] < " " and mwiki[n] != '\n' and mwiki[n] != \
-                            '\r' and mwiki[n] != '\t':
-                        mwiki = mwiki[:n] + "?" + mwiki[n + 1:]
+                for index, value in enumerate(mwiki):
+                    if value < " " and value != '\n' and value != \
+                            '\r' and value != '\t':
+                        mwiki = mwiki[:index] + "?" + mwiki[index + 1:]
 
                 mwiki = mwiki.replace('amp;lt;', 'lt;')
                 mwiki = mwiki.replace('amp;gt;', 'gt;')
@@ -926,7 +926,7 @@ for member in archive:
             else:
                 revision = revision.replace(
                     '<id>REV_ID_PLACEHOLDER</id>\n',
-                    '<id>' + str(len(revisions) + 1) + '</id>\n')
+            '<id>' + str(len(revisions) + 1) + '</id>\n')
 
             mwikixml.write(revision.encode())
 
