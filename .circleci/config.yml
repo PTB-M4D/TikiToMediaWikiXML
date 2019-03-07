@@ -43,7 +43,8 @@ jobs:
         name: run tests
         command: |
           . venv/bin/activate
-          pytest -v > test-reports/pytest.log
+          ls >> test-reports/pytest.log
+          pytest -v >> test-reports/pytest.log
 
 
     # Store test results.
