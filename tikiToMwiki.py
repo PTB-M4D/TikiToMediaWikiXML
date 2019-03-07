@@ -23,7 +23,7 @@ import re
 import sys
 import tarfile
 import time
-import xml.sax.saxutils as saxutils
+from xml.sax.saxutils import unescape, escape
 from email.parser import Parser
 from html.parser import HTMLParser
 from optparse import OptionParser
@@ -639,7 +639,7 @@ for member in archive:
                 entitydefs.pop("&amp;")
                 entitydefs.pop("&gt;")
                 entitydefs.pop("&lt;")
-                mwiki = saxutils.unescape(mwiki, entitydefs)
+                mwiki = unescape(mwiki, entitydefs)
 
                 # replace TikiWiki syntax that will be interpreted badly with
                 # TikiWiki syntax the parser will understand empty formatting
@@ -883,7 +883,7 @@ for member in archive:
                 entitydefs.pop('<')
                 entitydefs.pop('>')
                 entitydefs.pop('&')
-                mwiki = saxutils.escape(mwiki, entitydefs)
+                mwiki = escape(mwiki, entitydefs)
 
                 for index, value in enumerate(mwiki):
                     if value < " " and value != '\n' and value != \
