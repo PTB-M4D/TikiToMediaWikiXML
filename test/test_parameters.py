@@ -24,6 +24,6 @@ def test_stdout_call():
                '\'mustermann\']\r\nand file uploads on these pages: ' \
                'dict_keys([])\r\n'.encode()
     result = check_output(
-        [sys.executable, "./TikiToMWiki.py", "-o", "-",
+        [sys.executable, "~/repo/TikiToMediaWikiXML/TikiToMWiki.py", "-o", "-",
          "https://fb1-7.bs.ptb.de/tiki/", "./test/math.tar"])
     assert result == expected
