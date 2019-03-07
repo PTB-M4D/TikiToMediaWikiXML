@@ -43,9 +43,6 @@ jobs:
         name: run tests
         command: |
           . venv/bin/activate
-          echo '------------------->' >> test-reports/pytest.log
-          find 'TikiToMWiki.py' >> test-reports/pytest.log
-          echo '<-------------------' >> test-reports/pytest.log
           pytest -v >> test-reports/pytest.log
 
 
