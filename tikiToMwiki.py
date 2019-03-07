@@ -23,7 +23,7 @@ import re
 import sys
 import tarfile
 import time
-import xml.sax.saxutils as saxutils
+from xml.sax.saxutils import unescape, escape
 from email.parser import Parser
 from html.parser import HTMLParser
 from optparse import OptionParser
@@ -481,7 +481,7 @@ fileCount = 0
 if options.outputfile == '-':
     mwikixml = sys.stdout
 else:
-    mwikixml = open(outputfile, 'wb')
+    mwikixml = open(outputfile, 'w', encoding='utf-8')
     sys.stdout.write('Creating new wiki xml file ' + outputfile)
 
 # the source URL of the TikiWiki - in the form http://[your url]/tiki/
@@ -527,11 +527,11 @@ pagecount = 0
 versioncount = 0
 
 # Start writing to the specified output.
-mwikixml.write('<mediawiki xml:lang="en">\n'.encode())
+mwikixml.write('<mediawiki xml:lang="en">\n')
 header = '<siteinfo>\n' \
          '<base>' + sourceurl + '</base>\n' \
                                 '</siteinfo>\n'
-mwikixml.write(header.encode())
+mwikixml.write(header)
 
 for member in archive:
     if member.name not in privatePages:
@@ -539,7 +539,7 @@ for member in archive:
         tikifile = io.TextIOWrapper(
             archive.extractfile(member), encoding='utf-8')
         mimefile = p.parse(tikifile)
-        mwikixml.write('<page>\n'.encode())
+        mwikixml.write('<page>\n')
         partcount = 0
         uploads = []
         revisions = []
@@ -550,7 +550,7 @@ for member in archive:
             revision = ''
             if partcount == 1:
                 title = unquote(part.get_param('pagename'))
-                mwikixml.write(('<title>' + title + '</title>\n').encode())
+                mwikixml.write(('<title>' + title + '</title>\n'))
             partcount += 1
             if part.get_params() is not None and \
                     ('application/x-tikiwiki', '') in part.get_params():
@@ -639,7 +639,7 @@ for member in archive:
                 entitydefs.pop("&amp;")
                 entitydefs.pop("&gt;")
                 entitydefs.pop("&lt;")
-                mwiki = saxutils.unescape(mwiki, entitydefs)
+                mwiki = unescape(mwiki, entitydefs)
 
                 # replace TikiWiki syntax that will be interpreted badly with
                 # TikiWiki syntax the parser will understand empty formatting
@@ -883,7 +883,7 @@ for member in archive:
                 entitydefs.pop('<')
                 entitydefs.pop('>')
                 entitydefs.pop('&')
-                mwiki = saxutils.escape(mwiki, entitydefs)
+                mwiki = escape(mwiki, entitydefs)
 
                 for index, value in enumerate(mwiki):
                     if value < " " and value != '\n' and value != \
@@ -928,13 +928,13 @@ for member in archive:
                     '<id>REV_ID_PLACEHOLDER</id>\n',
             '<id>' + str(len(revisions) + 1) + '</id>\n')
 
-            mwikixml.write(revision.encode())
+            mwikixml.write(revision)
 
-        mwikixml.write('</page>\n'.encode())
+        mwikixml.write('</page>\n')
         if uploads:
             filepages[title] = uploads
         pagecount += 1
-mwikixml.write('</mediawiki>\n'.encode())
+mwikixml.write('</mediawiki>\n')
 sys.stdout.write('\nnumber of pages = ' + str(pagecount)
                  + ' number of versions = ' + str(versioncount) + '\n')
 sys.stdout.write('with contributions by ' + str(authors) + '\n')
