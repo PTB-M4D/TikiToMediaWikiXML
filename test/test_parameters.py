@@ -5,7 +5,7 @@ from subprocess import check_output
 def test_minimal_call():
     check_output(
         [sys.executable, "TikiToMWiki.py", "https://fb1-7.bs.ptb.de/tiki/",
-         "./test/math.tar"], shell=False)
+         "./test/math.tar"])
 
 
 def test_stdout_call():
@@ -24,5 +24,5 @@ def test_stdout_call():
                'dict_keys([])\r\n'.encode()
     result = check_output(
         [sys.executable, "TikiToMWiki.py", "-o", "-",
-         "https://fb1-7.bs.ptb.de/tiki/", "./test/math.tar"], shell=False)
+         "https://fb1-7.bs.ptb.de/tiki/", "./test/math.tar"])
     assert result == expected
