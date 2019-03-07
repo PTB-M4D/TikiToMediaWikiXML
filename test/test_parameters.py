@@ -1,14 +1,14 @@
-import subprocess
 import sys
+from subprocess import call
 
 
 def test_minimal_call():
-    subprocess.call(
+    call(
         [sys.executable, "TikiToMWiki.py", "https://fb1-7.bs.ptb.de/tiki/",
-         "./test/math.tar"], shell=False)
+         "./test/math.tar"], shell=True)
 
 
 def test_stdout_call():
-    subprocess.call(
+    call(
         [sys.executable, "TikiToMWiki.py",  "-o", "-",
-         "https://fb1-7.bs.ptb.de/tiki/", "./test/math.tar"], shell=False)
+         "https://fb1-7.bs.ptb.de/tiki/", "./test/math.tar"], shell=True)
