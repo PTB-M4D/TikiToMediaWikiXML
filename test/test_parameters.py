@@ -28,7 +28,7 @@ def test_stdout_call():
     expected_lin = '<mediawiki ' \
                    'xml:lang="en">\n<siteinfo>\n<base>https://fb1' \
                    '-7.bs.ptb.de/tiki/</base>\n</siteinfo>\n<page>\n<title' \
-                   '>Math testpage</title>\n<revision>\r\n<id>1</id>\n' \
+                   '>Math testpage</title>\n<revision>\n<id>1</id>\n' \
                    '<timestamp>2018-03-12T12:38:31Z</timestamp>\n<contributor' \
                    '><username>mustermann</username></contributor>\n<text ' \
                    'xml:space="preserve">\n__TOC__\n\n&lt;math&gt;\n' \
