@@ -23,11 +23,11 @@ import re
 import sys
 import tarfile
 import time
-from xml.sax.saxutils import unescape, escape
 from email.parser import Parser
 from html.parser import HTMLParser
 from optparse import OptionParser
 from urllib.parse import quote, unquote, urljoin
+from xml.sax.saxutils import unescape, escape
 
 from defusedxml import minidom
 
@@ -926,7 +926,7 @@ for member in archive:
             else:
                 revision = revision.replace(
                     '<id>REV_ID_PLACEHOLDER</id>\n',
-            '<id>' + str(len(revisions) + 1) + '</id>\n')
+                    '<id>' + str(len(revisions) + 1) + '</id>\n')
 
             mwikixml.write(revision)
 
