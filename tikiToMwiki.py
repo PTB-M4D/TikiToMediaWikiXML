@@ -473,11 +473,7 @@ else:
     outputfile = options.outputfile
 p = Parser()
 
-# multiple files may be created so this is added to the output file string to
-# identify them
-fileCount = 0
-
-# the string to name all outputfiles the fileCount is added to this
+# Open the output channel by either setting `stdout` or opening a file.
 if options.outputfile == '-':
     mwikixml = sys.stdout
 else:
