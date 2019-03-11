@@ -697,6 +697,7 @@ for member in archive:
                 box = False
                 colour = False
                 inColourTag = False
+                inFormula = False
                 page = ''
                 centre = False
                 for line in mwiki.splitlines(True):
@@ -714,23 +715,6 @@ for member in archive:
                                   r'<source>', line)
                     line = re.sub(r'{CODE}', r'</source>', line)
 
-                    # Convert formulas to XWiki syntax TODO convert <math> to
-                    #  final syntax in XML of:
-                    # {{formula &#124; a(t) &#124; fontsize=SMALLER}}
-                    # which represents a MediaWiki tag 'formula' with
-                    # parameter 'fontsize' set to 'SMALLER' and encapsulating
-                    # 'a(t)'. An important addition to the algorithm will be
-                    # to add a replacement of '=' by '\equal' because
-                    # otherwise '=' breaks the formula.
-                    line = re.sub(r'{HTML\(\)}\\[(,\[]',
-                                  r'<math>', line)
-                    line = re.sub(r'{HTML\(\)}', '<math>', line)
-                    line = re.sub(r'\\[(,\[]', '', line)
-                    line = re.sub(r'\\[),\]]{HTML}', r'</math>', line)
-                    line = re.sub(r'{HTML}', r'</math>', line)
-                    # line = re.sub(r'\\[),\]]', '', line)
-                    line = re.sub(r'\\varphi', r'\\phi', line)
-
                     # Convert anchor
                     line = re.sub(r'{ANAME\(\)}(.*){ANAME}',
                                   r'<span id=&quot;\1&quot;></span>', line)
@@ -740,6 +724,32 @@ for member in archive:
 
                     heading = False
                     noCentre = False
+
+                    # Handle formulas
+                    # Convert formulas to XWiki syntax TODO convert <math> to
+                    #  final syntax in XML of:
+                    # {{formula &#124; a(t) &#124; fontsize=SMALLER}}
+                    # which represents a MediaWiki tag 'formula' with
+                    # parameter 'fontsize' set to 'SMALLER' and encapsulating
+                    # 'a(t)'. An important addition to the algorithm will be
+                    # to add a replacement of '=' by '\equal' because
+                    # otherwise '=' breaks the formula.
+                    if re.search(r'{HTML\(\)}', line):
+                        inFormula = True
+                        line = re.sub(r'{HTML\(\)}\\[(,\[]',
+                                      r'{{formula |', line)
+                        line = re.sub(r'{HTML\(\)}', '{{formula |;', line)
+                        line = re.sub(r'\\[(,\[]', '', line)
+                    if inFormula:
+                        line = re.sub(r'\\varphi', r'\\phi', line)
+                        line = line.replace('=', '\equal')
+                    if re.search(r'{HTML}', line):
+                        inFormula = False
+                        line = re.sub(r'\\[),\]]{HTML}',
+                                      r'| fontsize=SMALLER}}', line)
+                        line = re.sub(r'{HTML}', r'| fontsize=SMALLER}}', line)
+
+
                     # if there are an odd no. of ::s don't convert to
                     # centered text
                     if line.count('::') % 2 != 0:
@@ -886,6 +896,7 @@ for member in archive:
                 entitydefs.pop('<')
                 entitydefs.pop('>')
                 entitydefs.pop('&')
+                entitydefs['|'] = '&#124;'
                 mwiki = escape(mwiki, entitydefs)
 
                 for index, value in enumerate(mwiki):
