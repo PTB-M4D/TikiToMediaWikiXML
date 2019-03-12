@@ -327,13 +327,13 @@ class HTMLToMwiki(HTMLParser):
 
 def insert_image(word):
     global image
-    global imagenames
-    global imageids
+    global imageFilenames
+    global imageFileIDs
     # there are even more ways to specify pic sources in our TikiWiki
     if 'name=' in word:
         parts = word.split('=')
         try:
-            filename = imagenames[parts[2]]
+            filename = imageFilenames[parts[2]]
         except KeyError:
             sys.stderr.write(parts[2] + 'doesn\'t exist in your image XML file '
                                         'and won\'t be displayed properly\n')
@@ -346,7 +346,7 @@ def insert_image(word):
     if 'id=' in word:
         parts = word.split('=')
         try:
-            filename = imageids[parts[2]]
+            filename = imageFileIDs[parts[2]]
         except KeyError:
             sys.stderr.write('The image with ID ' + parts[
                 2] + ' doesn\'t exist in your image XML file and won\'t be '
@@ -497,8 +497,8 @@ if options.privatexml != '':
                 privatePages.append(field.firstChild.data)
 # fill the lookup table with the image information
 # a file containing an xml dump from the TikiWiki DB
-imagenames = {}
-imageids = {}
+imageFilenames = {}
+imageFileIDs = {}
 if options.imagexml != '':
     imagexml = options.imagexml
     lookup = minidom.parse(imagexml)
@@ -507,14 +507,14 @@ if options.imagexml != '':
     for row in rows:
         fields = row.getElementsByTagName('field')
         for field in fields:
-            if field.getAttribute('name') == 'name':
-                iname = field
             if field.getAttribute('name') == 'filename':
-                ifile = field
-            if field.getAttribute('name') == 'imageID':
-                iid = field
-        imagenames[iname.firstChild.data] = ifile.firstChild.data
-        imageids[iid.firstChild.data] = ifile.firstChild.data
+                imageFilename = field
+            if field.getAttribute('name') == 'path':
+                imagePath = field
+            if field.getAttribute('name') == 'fileID':
+                fileID = field
+        imageFilenames[imageFilename.firstChild.data] = imageFileIDs[
+            fileID.firstChild.data] = imagePath.firstChild.data
 
 # list of users who have edited pages
 authors = []

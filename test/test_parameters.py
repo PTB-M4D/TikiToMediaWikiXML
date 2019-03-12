@@ -43,3 +43,10 @@ def test_stdout_call():
         [sys.executable, "tikiToMwiki.py", "-o", "-",
          "https://fb1-7.bs.ptb.de/tiki/", "./test/math.tar"])
     assert (result == expected_lin or result == expected_win)
+
+
+def test_images_call():
+    check_output(
+        [sys.executable, "tikiToMwiki.py", "-k", "./test/images.xml",
+         "https://fb1-7.bs.ptb.de/tiki/", "./test/math.tar"])
+
