@@ -17,10 +17,10 @@ def test_stdout_call():
                    '<timestamp>2018-03-12T12:38:31Z</timestamp>\r\n' \
                    '<contributor><username>mustermann</username></contributor' \
                    '>\r\n<text ' \
-                   'xml:space="preserve">\r\n__TOC__\r\n\r\n&lt;math&gt;\r\n' \
+                   'xml:space="preserve">\r\n__TOC__\r\n\r\n{{formula &#124;\r\n' \
                    '\r\na(t) \\equal \\frac{1}{2}\\left[\r\n\r\na_1 sin(' \
                    '\\omega t) + a_2 sin(\\omega t - ' \
-                   '\\phi_0)\r\n\r\n\\right]\r\n\r\n&lt;/math&gt;\r\n\r\n' \
+                   '\\phi_0)\r\n\r\n\\right]\r\n\r\n&#124; fontsize=SMALLER}}\r\n\r\n' \
                    '</text>\r\n</revision>\r\n</page>\r\n</mediawiki>\r\n\r' \
                    '\nnumber of pages = 1 number of versions = 1\r\nwith ' \
                    'contributions by [\'mustermann\']\r\nand file uploads on ' \
@@ -31,10 +31,10 @@ def test_stdout_call():
                    '>Math testpage</title>\n<revision>\n<id>1</id>\n' \
                    '<timestamp>2018-03-12T12:38:31Z</timestamp>\n<contributor' \
                    '><username>mustermann</username></contributor>\n<text ' \
-                   'xml:space="preserve">\n__TOC__\n\n&lt;math&gt;\n' \
+                   'xml:space="preserve">\n__TOC__\n\n{{formula &#124;\n' \
                    '\na(t) \\equal \\frac{1}{2}\\left[\n\na_1 sin(\\omega t) ' \
                    '+ a_2 sin(\\omega t - ' \
-                   '\\phi_0)\n\n\\right]\n\n&lt;/math&gt;\n\n</text' \
+                   '\\phi_0)\n\n\\right]\n\n&#124; fontsize=SMALLER}}\n\n</text' \
                    '>\n</revision>\n</page>\n</mediawiki>\n\nnumber of ' \
                    'pages = 1 number of versions = 1\nwith contributions by [' \
                    '\'mustermann\']\nand file uploads on these pages: ' \
