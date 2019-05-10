@@ -126,7 +126,7 @@ class HTMLToMwiki(HTMLParser):
                     if att[0] == 'src':
                         src = att[1]
                 src = quote(src)
-                # we have several different ways of specifying image sources
+                # we have several different ways of specifying processing_image sources
                 # in our TikiWiki
                 imagepath = urljoin(sourceurl, src)
                 if options.newImagepath != '':
@@ -325,48 +325,42 @@ class HTMLToMwiki(HTMLParser):
             wikitext.append(name)
 
 
-def insert_image(word):
-    global image
-    global imageFilenames
-    global imageFileIDs
-    # there are even more ways to specify pic sources in our TikiWiki
-    if 'name=' in word:
-        parts = word.split('=')
+def process_image(word):
+    # Filter the interesting bit of information inside the TikiWiki image
+    # tags, by dropping the opening tag first, then replacing the
+    # fileID-TikiWiki syntax with the MediaWiki syntax and finally closing
+    # the new tag accordingly.
+    # The TikiWiki image syntax is expected to be of the form:
+    #     `{img fielId="ANYNUMBER"}\n`
+    # so we use '"' as a seperator between the interesting FileID and the
+    # other parts of the tag.
+    # TODO work through the errors occuring while executing this
+    if 'fileId=' in word:
+        file_id_index = word.find('fileId=') + len('fileId=') + 1
+        file_id_len = word[file_id_index:].find('"')
+        file_id = word[file_id_index:file_id_index+file_id_len]
         try:
-            filename = imageFilenames[parts[2]]
+            filename = imageFileIDs[file_id]
         except KeyError:
-            sys.stderr.write(parts[2] + 'doesn\'t exist in your image XML file '
-                                        'and won\'t be displayed properly\n')
-            filename = parts[2]
-        filename = quote(filename)
-        imagepath = urljoin(urljoin(sourceurl, imageurl), filename)
-        if options.newImagepath != '':
-            imagepath = urljoin(options.newImagepath, filename)
-        words.append('<pic>' + imagepath)
-    if 'id=' in word:
-        parts = word.split('=')
-        try:
-            filename = imageFileIDs[parts[2]]
-        except KeyError:
-            sys.stderr.write('The image with ID ' + parts[
-                2] + ' doesn\'t exist in your image XML file and won\'t be '
+            sys.stderr.write('The processing_image with ID ' + file_id + ' doesn\'t exist in your processing_image XML file and won\'t be '
                      'displayed properly\n')
-            filename = parts[2]
+            filename = file_id
         filename = quote(filename)
-        imagepath = urljoin(urljoin(sourceurl, imageurl), filename)
+        imagepath = urljoin(imageurl, filename)
         if options.newImagepath != '':
             imagepath = urljoin(options.newImagepath, filename)
-        words.append('<pic>' + imagepath)
+        words.append('[[file:' + imagepath)
     if '}' in word:
-        bracket = word.find('}')
+        # Deal with different possible placements of image closing tags.
+        closing_brackets_index = word.find('}')
         if word[-1] != '}':
-            if word[bracket + 1] != ' ':
-                word = word.replace('}', '</pic> ')
+            if word[closing_brackets_index + 1] != ' ':
+                word = word.replace('}', ']] ')
             else:
-                word = word.replace('}', '</pic>')
-        word = word.replace('}', '</pic>')
+                word = word.replace('}', ']]')
+        word = word.replace('}', ']]')
         words.append(word)
-        image = False
+        processing_image = False
 
     return words
 
@@ -495,7 +489,7 @@ if options.privatexml != '':
         for field in fields:
             if field.getAttribute('name') == 'pageName':
                 privatePages.append(field.firstChild.data)
-# fill the lookup table with the image information
+# fill the lookup table with the processing_image information
 # a file containing an xml dump from the TikiWiki DB
 imageFilenames = {}
 imageFileIDs = {}
@@ -505,16 +499,12 @@ if options.imagexml != '':
 
     rows = lookup.getElementsByTagName('row')
     for row in rows:
-        fields = row.getElementsByTagName('field')
-        for field in fields:
-            if field.getAttribute('name') == 'filename':
-                imageFilename = field
-            if field.getAttribute('name') == 'path':
-                imagePath = field
-            if field.getAttribute('name') == 'fileID':
-                fileID = field
-        imageFilenames[imageFilename.firstChild.data] = imageFileIDs[
-            fileID.firstChild.data] = imagePath.firstChild.data
+        imageFilename = row.getElementsByTagName('filename')
+        imagePath = row.getElementsByTagName('path')
+        fileID = row.getElementsByTagName('fileID')
+        imageFilenames[imageFilename.item(0).firstChild.data] \
+            = imageFileIDs[fileID.item(0).firstChild.data] \
+            = imagePath.item(0).firstChild.data
 
 # list of users who have edited pages
 authors = []
@@ -692,7 +682,8 @@ for member in archive:
 
                 # split the text into lines and then strings to parse
                 words = []
-                image = False
+                # Set variables to mark current enclosing TikiWiki environment
+                processing_image = False
                 intLink = False
                 box = False
                 colour = False
@@ -821,11 +812,11 @@ for member in archive:
                                         inColourTag = True
                                 next_elem += 1
                         if '{img' in elem:
-                            image = True
+                            processing_image = True
                         if '((' in elem:
                             intLink = True
-                        if image:
-                            words = insert_image(elem)
+                        if processing_image:
+                            words = process_image(elem)
                         elif intLink:
                             insert_link(elem)
                         else:
