@@ -339,11 +339,14 @@ def process_image(word):
         file_id_index = word.find('fileId=') + len('fileId=') + 1
         file_id_len = word[file_id_index:].find('"')
         file_id = word[file_id_index:file_id_index+file_id_len]
+        # Return error message in case the mentioned file is not anymore
+        # an attachment in the current revision.
         try:
             filename = imageFileIDs[file_id]
         except KeyError:
-            sys.stderr.write('The processing_image with ID ' + file_id + ' doesn\'t exist in your processing_image XML file and won\'t be '
-                     'displayed properly\n')
+            sys.stderr.write('The processing_image with ID ' + file_id
+                             + ' doesn\'t exist in your processing_image XML '
+                             'file and won\'t be displayed properly\n')
             filename = file_id
         filename = quote(filename)
         imagepath = urljoin(imageurl, filename)
