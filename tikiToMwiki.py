@@ -726,14 +726,15 @@ for member in archive:
                     noCentre = False
 
                     # Handle formulas
-                    # Convert formulas to XWiki syntax TODO convert <math> to
-                    #  final syntax in XML of:
+                    # Convert formulas to XWiki syntax:
                     # {{formula &#124; a(t) &#124; fontsize=SMALLER}}
                     # which represents a MediaWiki tag 'formula' with
                     # parameter 'fontsize' set to 'SMALLER' and encapsulating
                     # 'a(t)'. An important addition to the algorithm will be
                     # to add a replacement of '=' by '\equal' because
-                    # otherwise '=' breaks the formula.
+                    # otherwise '=' breaks the formula. TODO This actually does
+                    # not allow for inline formulas anymore, so we need a
+                    # solution based on the Extension MathJax
                     if re.search(r'{HTML\(\)}', line):
                         inFormula = True
                         line = re.sub(r'{HTML\(\)}\\[(,\[]',
