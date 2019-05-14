@@ -325,19 +325,42 @@ class HTMLToMwiki(HTMLParser):
             wikitext.append(name)
 
 
-def process_image(word):
-    # Filter the interesting bit of information inside the TikiWiki image
-    # tags, by dropping the opening tag first, then replacing the
-    # fileID-TikiWiki syntax with the MediaWiki syntax and finally closing
-    # the new tag accordingly.
-    # The TikiWiki image syntax is expected to be of the form:
-    #     `{img fielId="ANYNUMBER"}\n`
-    # so we use '"' as a seperator between the interesting FileID and the
-    # other parts of the tag.
-    # TODO work through the errors occuring while executing this
-    if 'fileId=' in word:
-        file_id_index = word.find('fileId=') + len('fileId=') + 1
-        file_id_len = word[file_id_index:].find('"')
+def process_image(word, tag_identifier):
+    """
+        Modify current line's content by filtering the interesting bit of
+        information inside the TikiWiki image tags, by dropping the opening tag
+        first, then replacing the fileID-TikiWiki syntax with the MediaWiki
+        syntax and finally closing the new tag accordingly. The TikiWiki
+        image syntax is expected to be of the form:
+            `{img fielId="ANYNUMBER"}\n`
+        so we use '"' as a seperator between the interesting FileID and the
+        other parts of the tag, which we finally drop
+        TODO work through the errors occuring while executing this
+
+        :param str word: the current string potentially containing parts of
+        image
+            data
+        :param str tag_identifier: the wiki syntax for inserting images
+        :return: the modified current line and the switch to determine if
+            current image conversion is finished
+    """
+
+    # Set switch indicating if current image conversion is finished
+    still_processing = True
+
+    # Define the search string with the unique id_identifier for the image
+    id_identifier = 'fileId='
+
+    # Open the new image tag and insert the unique id_identifier for the image.
+    if id_identifier in word:
+        # Find position and length of the actual file id for either short
+        # syntax or embedded URL syntax.
+        if 'src=' in word:
+            file_id_index = word.find(id_identifier) + len(id_identifier)
+            file_id_len = word[file_id_index:].find('&')
+        else:
+            file_id_index = word.find(id_identifier) + len(id_identifier) + 1
+            file_id_len = word[file_id_index:].find('"')
         file_id = word[file_id_index:file_id_index+file_id_len]
         # Return error message in case the mentioned file is not anymore
         # an attachment in the current revision.
@@ -353,20 +376,22 @@ def process_image(word):
         if options.newImagepath != '':
             imagepath = urljoin(options.newImagepath, filename)
         words.append('[[file:' + imagepath)
+    # Close new image tag.
     if '}' in word:
-        # Deal with different possible placements of image closing tags.
+        # Insert an extra space in case the old image tag did not end on space.
         closing_brackets_index = word.find('}')
-        if word[-1] != '}':
-            if word[closing_brackets_index + 1] != ' ':
-                word = word.replace('}', ']] ')
-            else:
-                word = word.replace('}', ']]')
-        word = word.replace('}', ']]')
-        words.append(word)
-        processing_image = False
+        if word[-1] != '}' and word[closing_brackets_index + 1] != ' ':
+            words.append(']] ')
+        else:
+            words.append(']]')
 
-    return words
+        # Stop processing image conversion in case it is really finished and
+        # continue in case of multiple images in one line not seperated with
+        # a space
+        if tag_identifier not in word:
+            still_processing = False
 
+    return words, still_processing
 
 def insert_link(word):
     global intLink
@@ -521,6 +546,9 @@ header = '<siteinfo>\n' \
          '<base>' + sourceurl + '</base>\n' \
                                 '</siteinfo>\n'
 mwikixml.write(header)
+
+# Define image tag identifier.
+image_tag_ident = '{img'
 
 for member in archive:
     if member.name not in privatePages:
@@ -814,12 +842,13 @@ for member in archive:
                                                + elem[next_elem + 2:]
                                         inColourTag = True
                                 next_elem += 1
-                        if '{img' in elem:
+                        if image_tag_ident in elem:
                             processing_image = True
                         if '((' in elem:
                             intLink = True
                         if processing_image:
-                            words = process_image(elem)
+                            words, processing_image = process_image(
+                                elem, image_tag_ident)
                         elif intLink:
                             insert_link(elem)
                         else:
