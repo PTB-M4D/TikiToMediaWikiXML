@@ -324,25 +324,28 @@ class HTMLToMwiki(HTMLParser):
         else:
             wikitext.append(name)
 
+# TODO insert processing of {mediaplayer } tags
 
 def process_image(word, tag_identifier):
     """
-        Modify current line's content by filtering the interesting bit of
-        information inside the TikiWiki image tags, by dropping the opening tag
-        first, then replacing the fileID-TikiWiki syntax with the MediaWiki
-        syntax and finally closing the new tag accordingly. The TikiWiki
-        image syntax is expected to be of the form:
-            `{img fielId="ANYNUMBER"}\n`
-        so we use '"' as a seperator between the interesting FileID and the
-        other parts of the tag, which we finally drop
-        TODO work through the errors occuring while executing this
+    Modify current line's content by filtering the interesting bit of
+    information inside the TikiWiki image tags, by dropping the opening tag
+    first, then replacing the fileID-TikiWiki syntax with the MediaWiki
+    syntax and finally closing the new tag accordingly. The TikiWiki
+    image syntax is expected to be of the form:
+        `{img SOMETHING fielId="SOMETHING" SOMETHING}`
+    where SOMETHING is any string, so we use '"' as a seperator between the
+    interesting FileID and the other parts of the tag, which we finally drop.
+    The image filenames should either start with a capital letter or with a
+    number and have an appropriate file ending to ensure they are displayed
+    properly.
 
-        :param str word: the current string potentially containing parts of
-        image
-            data
-        :param str tag_identifier: the wiki syntax for inserting images
-        :return: the modified current line and the switch to determine if
-            current image conversion is finished
+    :param str word: the current string potentially containing parts of
+    image
+        data
+    :param str tag_identifier: the wiki syntax for inserting images
+    :return: the modified current line and the switch to determine if
+        current image conversion is finished
     """
 
     # Set switch indicating if current image conversion is finished
