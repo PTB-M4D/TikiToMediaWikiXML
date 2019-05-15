@@ -17,6 +17,7 @@
 #
 # © copyright PTB 2018, T. Bruns, B.Ludwig
 
+import datetime
 import html.entities as htmlentitydefs
 import io
 import re
@@ -495,6 +496,16 @@ if len(args) > 1:
     pages = archive.getnames()
     if options.outputfile == '':
         outputfile = args[1].replace('.tar', '.xml')
+        # Add the current date and time to the output's XML filename.
+        now = datetime.datetime.now()
+        year = now.year
+        month = '{:02d}'.format(now.month)
+        day = '{:02d}'.format(now.day)
+        hour = '{:02d}'.format(now.hour)
+        minute = '{:02d}'.format(now.minute)
+        outputfile = outputfile[:-4] + '_' \
+            + '{}{}{}_{}{}'.format(year, month, day, hour, minute) \
+            + outputfile[-4:]
     else:
         outputfile = options.outputfile
 else:
@@ -514,7 +525,7 @@ if options.outputfile == '-':
     mwikixml = sys.stdout
 else:
     mwikixml = open(outputfile, 'w', encoding='utf-8')
-    sys.stdout.write('Creating new wiki xml file ' + outputfile)
+    sys.stdout.write('Creating new wiki xml file ' + outputfile + '\n')
 
 # the source URL of the TikiWiki - in the form http://[your url]/tiki/
 sourceurl = args[0]
