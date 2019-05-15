@@ -126,7 +126,7 @@ class HTMLToMwiki(HTMLParser):
                     if att[0] == 'src':
                         src = att[1]
                 src = quote(src)
-                # we have several different ways of specifying processing_image sources
+                # we have several different ways of specifying image sources
                 # in our TikiWiki
                 imagepath = urljoin(sourceurl, src)
                 if options.newImagepath != '':
@@ -369,6 +369,11 @@ def process_image(word, attachment_identifiers):
         # an attachment in the current revision.
         try:
             filename = imageFileIDs[file_id]
+            if options.verbose_mode:
+                sys.stdout.write(
+                    'The attachment with ID ' + parts[2]
+                    + ' was successfully added to revision ' + str(partcount)
+                    + ' of the page "' + title + '"\n')
         except KeyError:
             sys.stderr.write('The attachment with ID ' + file_id
                              + ' doesn\'t exist in your specified XML '
@@ -475,6 +480,9 @@ parser.add_option("-k", "--imagexml", action="store", type="string",
                   dest="imagexml", default='',
                   help="an XML file containing metadata for the images in the "
                        "tiki")
+parser.add_option("-v", "--verbose", action="store_true", dest="verbose_mode",
+                  default=False,
+                  help="enable reporting to stdout about attachment conversion")
 
 (options, args) = parser.parse_args()
 
@@ -755,14 +763,15 @@ for member in archive:
                     noCentre = False
 
                     # Handle formulas
-                    # Convert formulas to XWiki syntax TODO convert <math> to
-                    #  final syntax in XML of:
+                    # Convert formulas to XWiki syntax:
                     # {{formula &#124; a(t) &#124; fontsize=SMALLER}}
                     # which represents a MediaWiki tag 'formula' with
                     # parameter 'fontsize' set to 'SMALLER' and encapsulating
                     # 'a(t)'. An important addition to the algorithm will be
                     # to add a replacement of '=' by '\equal' because
-                    # otherwise '=' breaks the formula.
+                    # otherwise '=' breaks the formula. TODO This actually does
+                    # not allow for inline formulas anymore, so we need a
+                    # solution based on the Extension MathJax
                     if re.search(r'{HTML\(\)}', line):
                         inFormula = True
                         line = re.sub(r'{HTML\(\)}\\[(,\[]',
