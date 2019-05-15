@@ -371,7 +371,7 @@ def process_image(word, attachment_identifiers):
             filename = imageFileIDs[file_id]
             if options.verbose_mode:
                 sys.stdout.write(
-                    'The attachment with ID ' + parts[2]
+                    'The attachment with ID ' + file_id
                     + ' was successfully added to revision ' + str(partcount)
                     + ' of the page "' + title + '"\n')
         except KeyError:
