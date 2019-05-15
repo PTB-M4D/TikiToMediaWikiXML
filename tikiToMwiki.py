@@ -17,6 +17,7 @@
 #
 # © copyright PTB 2018, T. Bruns, B.Ludwig
 
+import datetime
 import html.entities as htmlentitydefs
 import io
 import re
@@ -325,50 +326,83 @@ class HTMLToMwiki(HTMLParser):
             wikitext.append(name)
 
 
-def insert_image(word):
-    global image
-    global imagenames
-    global imageids
-    # there are even more ways to specify pic sources in our TikiWiki
-    if 'name=' in word:
-        parts = word.split('=')
-        try:
-            filename = imagenames[parts[2]]
-        except KeyError:
-            sys.stderr.write(parts[2] + 'doesn\'t exist in your image XML file '
-                                        'and won\'t be displayed properly\n')
-            filename = parts[2]
-        filename = quote(filename)
-        imagepath = urljoin(urljoin(sourceurl, imageurl), filename)
-        if options.newImagepath != '':
-            imagepath = urljoin(options.newImagepath, filename)
-        words.append('<pic>' + imagepath)
-    if 'id=' in word:
-        parts = word.split('=')
-        try:
-            filename = imageids[parts[2]]
-        except KeyError:
-            sys.stderr.write('The image with ID ' + parts[
-                2] + ' doesn\'t exist in your image XML file and won\'t be '
-                     'displayed properly\n')
-            filename = parts[2]
-        filename = quote(filename)
-        imagepath = urljoin(urljoin(sourceurl, imageurl), filename)
-        if options.newImagepath != '':
-            imagepath = urljoin(options.newImagepath, filename)
-        words.append('<pic>' + imagepath)
-    if '}' in word:
-        bracket = word.find('}')
-        if word[-1] != '}':
-            if word[bracket + 1] != ' ':
-                word = word.replace('}', '</pic> ')
-            else:
-                word = word.replace('}', '</pic>')
-        word = word.replace('}', '</pic>')
-        words.append(word)
-        image = False
+def process_image(word, attachment_identifiers):
+    """
+    Modify current line's content by filtering the interesting bit of
+    information inside the TikiWiki image tags, by dropping the opening tag
+    first, then replacing the fileID-TikiWiki syntax with the MediaWiki
+    syntax and finally closing the new tag accordingly. The TikiWiki
+    image syntax is expected to be of the form:
+        `{img SOMETHING fielId="SOMETHING" SOMETHING}`
+    where SOMETHING is any string, so we use '"' as a seperator between the
+    interesting FileID and the other parts of the tag, which we finally drop.
+    The image filenames should either start with a capital letter or with a
+    number and have an appropriate file ending to ensure they are displayed
+    properly.
 
-    return words
+    :param str word: the current string potentially containing parts of
+    image
+        data
+    :param list[str] attachment_identifiers: the wiki syntax for inserting
+        images or files
+    :return: the modified current line and the switch to determine if
+        current image conversion is finished
+    """
+
+    # Set switch indicating if current image conversion is finished
+    still_processing = True
+
+    # Define the search string with the unique id_identifier for the image
+    id_identifier = 'fileId='
+
+    # Open the new attachment tag and insert the unique id_identifier for it.
+    if id_identifier in word:
+        # Find position and length of the actual file id for either short
+        # syntax or embedded URL syntax.
+        if 'src=' in word:
+            file_id_index = word.find(id_identifier) + len(id_identifier)
+            file_id_len = word[file_id_index:].find('&')
+        else:
+            file_id_index = word.find(id_identifier) + len(id_identifier) + 1
+            file_id_len = word[file_id_index:].find('"')
+        file_id = word[file_id_index:file_id_index+file_id_len]
+        # Return error message in case the mentioned file is not anymore
+        # an attachment in the current revision.
+        try:
+            filename = imageFileIDs[file_id]
+            if options.verbose_mode:
+                sys.stdout.write(
+                    'The attachment with ID ' + file_id
+                    + ' was successfully added to revision ' + str(partcount)
+                    + ' of the page "' + title + '"\n')
+        except KeyError:
+            sys.stderr.write('The attachment with ID ' + file_id
+                             + ' doesn\'t exist in your specified XML '
+                               'file and won\'t be displayed properly\n')
+            filename = file_id
+        filename = quote(filename)
+        imagepath = urljoin(imageurl, filename)
+        if options.newImagepath != '':
+            imagepath = urljoin(options.newImagepath, filename)
+        words.append('[[file:' + imagepath)
+    # Close new attachment tag.
+    if '}' in word:
+        # Insert an extra space in case the old attachment tag did not end on
+        # space.
+        closing_brackets_index = word.find('}')
+        if word[-1] != '}' and word[closing_brackets_index + 1] != ' ':
+            words.append(']] ')
+        else:
+            words.append(']]')
+
+        # Stop processing attachment conversion in case it is really finished in
+        # the current line and continue in case of multiple attachments in one
+        # line. This is especially needed in case the tags are not separated
+        # by anything.
+        if not any(tag in word for tag in attachment_identifiers):
+            still_processing = False
+
+    return words, still_processing
 
 
 def insert_link(word):
@@ -447,6 +481,9 @@ parser.add_option("-k", "--imagexml", action="store", type="string",
                   dest="imagexml", default='',
                   help="an XML file containing metadata for the images in the "
                        "tiki")
+parser.add_option("-v", "--verbose", action="store_true", dest="verbose_mode",
+                  default=False,
+                  help="enable reporting to stdout about attachment conversion")
 
 (options, args) = parser.parse_args()
 
@@ -459,6 +496,16 @@ if len(args) > 1:
     pages = archive.getnames()
     if options.outputfile == '':
         outputfile = args[1].replace('.tar', '.xml')
+        # Add the current date and time to the output's XML filename.
+        now = datetime.datetime.now()
+        year = now.year
+        month = '{:02d}'.format(now.month)
+        day = '{:02d}'.format(now.day)
+        hour = '{:02d}'.format(now.hour)
+        minute = '{:02d}'.format(now.minute)
+        outputfile = outputfile[:-4] + '_' \
+            + '{}{}{}_{}{}'.format(year, month, day, hour, minute) \
+            + outputfile[-4:]
     else:
         outputfile = options.outputfile
 else:
@@ -478,7 +525,7 @@ if options.outputfile == '-':
     mwikixml = sys.stdout
 else:
     mwikixml = open(outputfile, 'w', encoding='utf-8')
-    sys.stdout.write('Creating new wiki xml file ' + outputfile)
+    sys.stdout.write('Creating new wiki xml file ' + outputfile + '\n')
 
 # the source URL of the TikiWiki - in the form http://[your url]/tiki/
 sourceurl = args[0]
@@ -495,26 +542,23 @@ if options.privatexml != '':
         for field in fields:
             if field.getAttribute('name') == 'pageName':
                 privatePages.append(field.firstChild.data)
-# fill the lookup table with the image information
+
+# fill the lookup table with the attachment information
 # a file containing an xml dump from the TikiWiki DB
-imagenames = {}
-imageids = {}
+imageFilenames = {}
+imageFileIDs = {}
 if options.imagexml != '':
     imagexml = options.imagexml
     lookup = minidom.parse(imagexml)
 
     rows = lookup.getElementsByTagName('row')
     for row in rows:
-        fields = row.getElementsByTagName('field')
-        for field in fields:
-            if field.getAttribute('name') == 'name':
-                iname = field
-            if field.getAttribute('name') == 'filename':
-                ifile = field
-            if field.getAttribute('name') == 'imageID':
-                iid = field
-        imagenames[iname.firstChild.data] = ifile.firstChild.data
-        imageids[iid.firstChild.data] = ifile.firstChild.data
+        imageFilename = row.getElementsByTagName('filename')
+        imagePath = row.getElementsByTagName('path')
+        fileID = row.getElementsByTagName('fileID')
+        imageFilenames[imageFilename.item(0).firstChild.data] \
+            = imageFileIDs[fileID.item(0).firstChild.data] \
+            = imagePath.item(0).firstChild.data
 
 # list of users who have edited pages
 authors = []
@@ -528,6 +572,9 @@ header = '<siteinfo>\n' \
          '<base>' + sourceurl + '</base>\n' \
                                 '</siteinfo>\n'
 mwikixml.write(header)
+
+# Set opening tags to identify file attachments (images, pdfs, etc.).
+attachment_identifiers = ['{img', '{mediaplayer']
 
 for member in archive:
     if member.name not in privatePages:
@@ -692,7 +739,8 @@ for member in archive:
 
                 # split the text into lines and then strings to parse
                 words = []
-                image = False
+                # Set variables to mark current enclosing TikiWiki environment
+                processing_attachment = False
                 intLink = False
                 box = False
                 colour = False
@@ -821,12 +869,13 @@ for member in archive:
                                                + elem[next_elem + 2:]
                                         inColourTag = True
                                 next_elem += 1
-                        if '{img' in elem:
-                            image = True
+                        if any(tag in elem for tag in attachment_identifiers):
+                            processing_attachment = True
                         if '((' in elem:
                             intLink = True
-                        if image:
-                            words = insert_image(elem)
+                        if processing_attachment:
+                            words, processing_attachment = process_image(
+                                elem, attachment_identifiers)
                         elif intLink:
                             insert_link(elem)
                         else:
