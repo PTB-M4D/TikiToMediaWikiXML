@@ -324,9 +324,8 @@ class HTMLToMwiki(HTMLParser):
         else:
             wikitext.append(name)
 
-# TODO insert processing of {mediaplayer } tags
 
-def process_image(word, tag_identifier):
+def process_image(word, attachment_identifiers):
     """
     Modify current line's content by filtering the interesting bit of
     information inside the TikiWiki image tags, by dropping the opening tag
@@ -343,7 +342,8 @@ def process_image(word, tag_identifier):
     :param str word: the current string potentially containing parts of
     image
         data
-    :param str tag_identifier: the wiki syntax for inserting images
+    :param list[str] attachment_identifiers: the wiki syntax for inserting
+        images or files
     :return: the modified current line and the switch to determine if
         current image conversion is finished
     """
@@ -354,7 +354,7 @@ def process_image(word, tag_identifier):
     # Define the search string with the unique id_identifier for the image
     id_identifier = 'fileId='
 
-    # Open the new image tag and insert the unique id_identifier for the image.
+    # Open the new attachment tag and insert the unique id_identifier for it.
     if id_identifier in word:
         # Find position and length of the actual file id for either short
         # syntax or embedded URL syntax.
@@ -370,31 +370,34 @@ def process_image(word, tag_identifier):
         try:
             filename = imageFileIDs[file_id]
         except KeyError:
-            sys.stderr.write('The processing_image with ID ' + file_id
-                             + ' doesn\'t exist in your processing_image XML '
-                             'file and won\'t be displayed properly\n')
+            sys.stderr.write('The attachment with ID ' + file_id
+                             + ' doesn\'t exist in your specified XML '
+                               'file and won\'t be displayed properly\n')
             filename = file_id
         filename = quote(filename)
         imagepath = urljoin(imageurl, filename)
         if options.newImagepath != '':
             imagepath = urljoin(options.newImagepath, filename)
         words.append('[[file:' + imagepath)
-    # Close new image tag.
+    # Close new attachment tag.
     if '}' in word:
-        # Insert an extra space in case the old image tag did not end on space.
+        # Insert an extra space in case the old attachment tag did not end on
+        # space.
         closing_brackets_index = word.find('}')
         if word[-1] != '}' and word[closing_brackets_index + 1] != ' ':
             words.append(']] ')
         else:
             words.append(']]')
 
-        # Stop processing image conversion in case it is really finished and
-        # continue in case of multiple images in one line not seperated with
-        # a space
-        if tag_identifier not in word:
+        # Stop processing attachment conversion in case it is really finished in
+        # the current line and continue in case of multiple attachments in one
+        # line. This is especially needed in case the tags are not separated
+        # by anything.
+        if not any(tag in word for tag in attachment_identifiers):
             still_processing = False
 
     return words, still_processing
+
 
 def insert_link(word):
     global intLink
@@ -520,7 +523,8 @@ if options.privatexml != '':
         for field in fields:
             if field.getAttribute('name') == 'pageName':
                 privatePages.append(field.firstChild.data)
-# fill the lookup table with the processing_image information
+
+# fill the lookup table with the attachment information
 # a file containing an xml dump from the TikiWiki DB
 imageFilenames = {}
 imageFileIDs = {}
@@ -550,8 +554,8 @@ header = '<siteinfo>\n' \
                                 '</siteinfo>\n'
 mwikixml.write(header)
 
-# Define image tag identifier.
-image_tag_ident = '{img'
+# Set opening tags to identify file attachments (images, pdfs, etc.).
+attachment_identifiers = ['{img', '{mediaplayer']
 
 for member in archive:
     if member.name not in privatePages:
@@ -717,7 +721,7 @@ for member in archive:
                 # split the text into lines and then strings to parse
                 words = []
                 # Set variables to mark current enclosing TikiWiki environment
-                processing_image = False
+                processing_attachment = False
                 intLink = False
                 box = False
                 colour = False
@@ -845,13 +849,13 @@ for member in archive:
                                                + elem[next_elem + 2:]
                                         inColourTag = True
                                 next_elem += 1
-                        if image_tag_ident in elem:
-                            processing_image = True
+                        if any(tag in elem for tag in attachment_identifiers):
+                            processing_attachment = True
                         if '((' in elem:
                             intLink = True
-                        if processing_image:
-                            words, processing_image = process_image(
-                                elem, image_tag_ident)
+                        if processing_attachment:
+                            words, processing_attachment = process_image(
+                                elem, attachment_identifiers)
                         elif intLink:
                             insert_link(elem)
                         else:
