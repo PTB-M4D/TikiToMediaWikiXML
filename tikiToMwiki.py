@@ -347,6 +347,11 @@ def insert_image(word):
         parts = word.split('=')
         try:
             filename = imageids[parts[2]]
+            if options.verbose_mode:
+                sys.stdout.write(
+                    'The attachment with ID ' + parts[2]
+                    + ' was successfully added to revision ' + str(partcount)
+                    + ' of the page "' + title + '"\n')
         except KeyError:
             sys.stderr.write('The image with ID ' + parts[
                 2] + ' doesn\'t exist in your image XML file and won\'t be '
@@ -447,6 +452,9 @@ parser.add_option("-k", "--imagexml", action="store", type="string",
                   dest="imagexml", default='',
                   help="an XML file containing metadata for the images in the "
                        "tiki")
+parser.add_option("-v", "--verbose", action="store_true", dest="verbose_mode",
+                  default=False,
+                  help="enable reporting to stdout about attachment conversion")
 
 (options, args) = parser.parse_args()
 
