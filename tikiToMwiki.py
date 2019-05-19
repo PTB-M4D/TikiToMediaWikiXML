@@ -15,7 +15,7 @@
 # original revision history is inserted in the commit history of this
 # repository.
 #
-# © copyright PTB 2018, T. Bruns, B.Ludwig
+# © copyright PTB 2019, T. Bruns, B.Ludwig
 
 import datetime
 import html.entities as htmlentitydefs
