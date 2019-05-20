@@ -117,7 +117,7 @@ class TestImages:
         assert (result == expected_lin or result == expected_win)
 
     @staticmethod
-    def test_stdout_with_width_px_call():
+    def test_stdout_with_percentage_call():
         expected = '<mediawiki ' \
                        'xml:lang="en">\r\n<siteinfo>\r\n<base>https://fb1-7.' \
                        'bs.ptb.de/tiki/</base>\r\n</siteinfo>\r\n<page>\r\n' \
