@@ -17,6 +17,7 @@
 #
 # © copyright PTB 2019, T. Bruns, B.Ludwig
 
+import ast
 import datetime
 import html.entities as htmlentitydefs
 import io
@@ -604,8 +605,8 @@ for member in archive:
                 revision += '<revision>\n'
                 revision += '<id>REV_ID_PLACEHOLDER</id>\n'
                 revision += '<timestamp>' + time.strftime(
-                    '%Y-%m-%dT%H:%M:%SZ', time.gmtime(eval(part.get_param(
-                        'lastmodified')))) + '</timestamp>\n'
+                    '%Y-%m-%dT%H:%M:%SZ', time.gmtime(ast.literal_eval(
+                        part.get_param('lastmodified')))) + '</timestamp>\n'
                 revision += '<contributor><username>' + part.get_param(
                     'author') + '</username></contributor>\n'
                 # add author to list of contributors to be output at the end
