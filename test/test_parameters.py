@@ -20,10 +20,10 @@ class TestMath:
                        '2018-03-12T12:38:31Z</timestamp>\r\n<contributor>' \
                        '<username>mustermann</username></contributor>\r\n' \
                        '<text xml:space="preserve">\r\n__TOC__\r\n\r\n' \
-                       '{{formula &#124;\r\n\r\na(t) \\equal \\frac{1}{2}\\' \
+                       '{{mathjax}}\r\n\r\na(t) = \\frac{1}{2}\\' \
                        'left[\r\n\r\na_1 sin(\\omega t) + a_2 sin(' \
-                       '\\omega t - \\phi_0)\r\n\r\n\\right]\r\n\r\n&#124;' \
-                       ' fontsize=SMALLER}}\r\n\r\n</text>\r\n</revision>' \
+                       '\\omega t - \\varphi_0)\r\n\r\n\\right]\r\n\r\n{{' \
+                       '/mathjax}}\r\n\r\n</text>\r\n</revision>' \
                        '\r\n</page>\r\n</mediawiki>\r\n\r\nnumber of pages ' \
                        '= 1 number of versions = 1\r\nwith contributions by ' \
                        '[\'mustermann\']\r\nand file uploads on these pages:' \
