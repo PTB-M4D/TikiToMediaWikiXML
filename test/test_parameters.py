@@ -42,7 +42,7 @@ class TestImages:
             [sys.executable, "tikiToMwiki.py", "-k",
              "./test/images/testpage_images.xml", "-i", "./test/images/",
              "https://fb1-7.bs.ptb.de/tiki/",
-             "./test/images/Image Testpage.tar"])
+             "./test/images/Image testpage.tar"])
 
     @staticmethod
     def test_stdout_minimal_call():
@@ -65,7 +65,7 @@ class TestImages:
             [sys.executable, "tikiToMwiki.py", "-o", "-", "-k",
              "./test/images/testpage_images.xml", "-i", ".",
              "https://fb1-7.bs.ptb.de/tiki/",
-             "./test/images/Image Testpage.tar"])
+             "./test/images/Image testpage.tar"])
         assert (result == expected_lin or result == expected_win)
 
     @staticmethod
@@ -89,7 +89,7 @@ class TestImages:
             [sys.executable, "tikiToMwiki.py", "-o", "-", "-k",
              "./test/images/testpage_images.xml", "-i", ".",
              "https://fb1-7.bs.ptb.de/tiki/",
-             "./test/images/Image Testpage_width.tar"])
+             "./test/images/Image testpage_width.tar"])
         assert (result == expected_lin or result == expected_win)
 
     @staticmethod
@@ -113,7 +113,7 @@ class TestImages:
             [sys.executable, "tikiToMwiki.py", "-o", "-", "-k",
              "./test/images/testpage_images.xml", "-i", ".",
              "https://fb1-7.bs.ptb.de/tiki/",
-             "./test/images/Image Testpage_width_px.tar"])
+             "./test/images/Image testpage_width_px.tar"])
         assert (result == expected_lin or result == expected_win)
 
     @staticmethod
