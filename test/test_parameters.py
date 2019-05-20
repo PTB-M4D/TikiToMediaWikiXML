@@ -166,12 +166,3 @@ class TestImages:
              "https://fb1-7.bs.ptb.de/tiki/",
              "./test/images/Image testpage_width_percentage.tar"])
         assert (result == expected_lin or result == expected_win)
-
-    # noinspection PyPep8Naming
-    @classmethod
-    def tearDownClass(cls):
-        from glob import glob
-
-        for filename in glob("images_*.xml"):
-            print(filename)
-            # (filename)
