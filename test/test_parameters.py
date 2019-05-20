@@ -2,7 +2,7 @@ import sys
 from subprocess import check_output
 
 
-class TestMath():
+class TestMath:
 
     def test_minimal_call(self):
         check_output(
