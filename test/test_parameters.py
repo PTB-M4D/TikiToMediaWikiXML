@@ -4,6 +4,18 @@ from subprocess import check_output
 
 class TestMath:
 
+    @classmethod
+    def teardown_class(cls):
+        """
+            This method deletes all files created during the tests with
+            filenames './test/math/math_*.xml'.
+        """
+        from glob import glob
+        import os
+
+        for filename in glob("./test/math/math_*.xml"):
+            os.remove(filename)
+
     @staticmethod
     def test_minimal_call():
         check_output(
@@ -38,6 +50,18 @@ class TestMath:
 
 class TestImages:
 
+    @classmethod
+    def teardown_class(cls):
+        """
+            This method deletes all files created during the tests with
+            filenames './test/images/Image testpage_*.xml'.
+        """
+        from glob import glob
+        import os
+
+        for filename in glob("./test/images/Image testpage_*.xml"):
+            os.remove(filename)
+
     @staticmethod
     def test_minimal_call():
         check_output(
@@ -48,21 +72,9 @@ class TestImages:
 
     @staticmethod
     def test_stdout_minimal_call():
-        expected = '<mediawiki ' \
-                       'xml:lang="en">\r\n<siteinfo>\r\n<base>https://fb1-7.' \
-                       'bs.ptb.de/tiki/</base>\r\n</siteinfo>\r\n<page>\r\n' \
-                       '<title>Image testpage</title>\r\n<revision>\r\n<id>1' \
-                       '</id>\r\n<timestamp>2018-03-12T12:38:31Z</timestamp>' \
-                       '\r\n<contributor><username>mustermann</username>' \
-                       '</contributor>\r\n<text xml:space="preserve">\r\n' \
-                       '__TOC__\r\n\r\n{{File:Xwiki-logo.png#124;}} ' \
-                       '</text>\r\n' \
-                       '</revision>\r\n</page>\r\n</mediawiki>\r\n\r\n' \
-                       'number of pages = 1 number of versions = 1\r\nwith ' \
-                       'contributions by [\'mustermann\']\r\nand file uploads' \
-                       ' on these pages: dict_keys([])\r\n'
-        expected_lin = expected.replace('\r\n', '\n').encode()
-        expected_win = expected.encode()
+        specific_string = '__TOC__\r\n\r\n{{File:Xwiki-logo.png#124;}} '
+        expected_lin, expected_win = \
+            TestImages.prepare_comparison_string(specific_string)
         result = check_output(
             [sys.executable, "tikiToMwiki.py", "-o", "-", "-k",
              "./test/images/testpage_images.xml", "-i", ".",
@@ -72,21 +84,10 @@ class TestImages:
 
     @staticmethod
     def test_stdout_with_width_call():
-        expected = '<mediawiki ' \
-                       'xml:lang="en">\r\n<siteinfo>\r\n<base>https://fb1-7.' \
-                       'bs.ptb.de/tiki/</base>\r\n</siteinfo>\r\n<page>\r\n' \
-                       '<title>Image testpage</title>\r\n<revision>\r\n<id>1' \
-                       '</id>\r\n<timestamp>2018-03-12T12:38:31Z</timestamp>' \
-                       '\r\n<contributor><username>mustermann</username>' \
-                       '</contributor>\r\n<text xml:space="preserve">\r\n' \
-                       '__TOC__\r\n\r\n{{File:Xwiki-logo.png#124;100px#124;}} ' \
-                   '</text>\r\n' \
-                       '</revision>\r\n</page>\r\n</mediawiki>\r\n\r\n' \
-                       'number of pages = 1 number of versions = 1\r\nwith ' \
-                       'contributions by [\'mustermann\']\r\nand file uploads' \
-                       ' on these pages: dict_keys([])\r\n'
-        expected_lin = expected.replace('\r\n', '\n').encode()
-        expected_win = expected.encode()
+        specific_string = '__TOC__\r\n\r\n{{' \
+                          'File:Xwiki-logo.png#124;100px#124;}} '
+        expected_lin, expected_win = \
+            TestImages.prepare_comparison_string(specific_string)
         result = check_output(
             [sys.executable, "tikiToMwiki.py", "-o", "-", "-k",
              "./test/images/testpage_images.xml", "-i", ".",
@@ -96,21 +97,10 @@ class TestImages:
 
     @staticmethod
     def test_stdout_with_width_px_call():
-        expected = '<mediawiki ' \
-                       'xml:lang="en">\r\n<siteinfo>\r\n<base>https://fb1-7.' \
-                       'bs.ptb.de/tiki/</base>\r\n</siteinfo>\r\n<page>\r\n' \
-                       '<title>Image testpage</title>\r\n<revision>\r\n<id>1' \
-                       '</id>\r\n<timestamp>2018-03-12T12:38:31Z</timestamp>' \
-                       '\r\n<contributor><username>mustermann</username>' \
-                       '</contributor>\r\n<text xml:space="preserve">\r\n' \
-                       '__TOC__\r\n\r\n{{File:Xwiki-logo.png#124;600px#124;}} ' \
-                   '</text>\r\n' \
-                       '</revision>\r\n</page>\r\n</mediawiki>\r\n\r\n' \
-                       'number of pages = 1 number of versions = 1\r\nwith ' \
-                       'contributions by [\'mustermann\']\r\nand file uploads' \
-                       ' on these pages: dict_keys([])\r\n'
-        expected_lin = expected.replace('\r\n', '\n').encode()
-        expected_win = expected.encode()
+        specific_string = '__TOC__\r\n\r\n{{' \
+                          'File:Xwiki-logo.png#124;600px#124;}} '
+        expected_lin, expected_win = \
+            TestImages.prepare_comparison_string(specific_string)
         result = check_output(
             [sys.executable, "tikiToMwiki.py", "-o", "-", "-k",
              "./test/images/testpage_images.xml", "-i", ".",
@@ -120,25 +110,30 @@ class TestImages:
 
     @staticmethod
     def test_stdout_with_percentage_call():
-        expected = '<mediawiki ' \
-                       'xml:lang="en">\r\n<siteinfo>\r\n<base>https://fb1-7.' \
-                       'bs.ptb.de/tiki/</base>\r\n</siteinfo>\r\n<page>\r\n' \
-                       '<title>Image testpage</title>\r\n<revision>\r\n<id>1' \
-                       '</id>\r\n<timestamp>2018-03-12T12:38:31Z</timestamp>' \
-                       '\r\n<contributor><username>mustermann</username>' \
-                       '</contributor>\r\n<text xml:space="preserve">\r\n' \
-                       '__TOC__\r\n\r\n{{File:Xwiki-logo.png#124;upright ' \
-                   '1.0#124;}} ' \
-                   '</text>\r\n' \
-                       '</revision>\r\n</page>\r\n</mediawiki>\r\n\r\n' \
-                       'number of pages = 1 number of versions = 1\r\nwith ' \
-                       'contributions by [\'mustermann\']\r\nand file uploads' \
-                       ' on these pages: dict_keys([])\r\n'
-        expected_lin = expected.replace('\r\n', '\n').encode()
-        expected_win = expected.encode()
+        specific_string = '__TOC__\r\n\r\n{{File:Xwiki-logo.png#124;upright ' \
+                   '1.0#124;}} '
+        expected_lin, expected_win = \
+            TestImages.prepare_comparison_string(specific_string)
         result = check_output(
             [sys.executable, "tikiToMwiki.py", "-o", "-", "-k",
              "./test/images/testpage_images.xml", "-i", ".",
              "https://fb1-7.bs.ptb.de/tiki/",
              "./test/images/Image testpage_width_percentage.tar"])
         assert (result == expected_lin or result == expected_win)
+
+    @staticmethod
+    def prepare_comparison_string(string):
+        opening_string = '<mediawiki ' \
+                   'xml:lang="en">\r\n<siteinfo>\r\n<base>https://fb1-7.' \
+                   'bs.ptb.de/tiki/</base>\r\n</siteinfo>\r\n<page>\r\n' \
+                   '<title>Image testpage</title>\r\n<revision>\r\n<id>1' \
+                   '</id>\r\n<timestamp>2018-03-12T12:38:31Z</timestamp>' \
+                   '\r\n<contributor><username>mustermann</username>' \
+                   '</contributor>\r\n<text xml:space="preserve">\r\n'
+        ending_string = '</text>\r\n' \
+                   '</revision>\r\n</page>\r\n</mediawiki>\r\n\r\n' \
+                   'number of pages = 1 number of versions = 1\r\nwith ' \
+                   'contributions by [\'mustermann\']\r\nand file uploads' \
+                   ' on these pages: dict_keys([])\r\n'
+        expected = opening_string + string + ending_string
+        return expected.replace('\r\n', '\n').encode(), expected.encode()
