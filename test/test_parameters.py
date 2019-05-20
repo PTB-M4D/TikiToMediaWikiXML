@@ -32,10 +32,10 @@ class TestMath:
                        '<id>1</id>\n<timestamp>2018-03-12T12:38:31Z' \
                        '</timestamp>\n<contributor><username>mustermann' \
                        '</username></contributor>\n<text xml:space=' \
-                       '"preserve">\n__TOC__\n\n{{formula &#124;\r\n\r\n' \
-                       'a(t) \\equal \\frac{1}{2}\\left[\r\n\r\na_1 sin(' \
-                       '\\omega t) + a_2 sin(\\omega t - \\phi_0)\r\n\r\n' \
-                       '\\right]\r\n\r\n&#124; fontsize=SMALLER}}\n\n' \
+                       '"preserve">\n__TOC__\n\n{{formula &#124;\n\n' \
+                       'a(t) \\equal \\frac{1}{2}\\left[\n\na_1 sin(' \
+                       '\\omega t) + a_2 sin(\\omega t - \\phi_0)\n\n' \
+                       '\\right]\n\n&#124; fontsize=SMALLER}}\n\n' \
                        '</text>\n</revision>\n</page>\n</mediawiki>\n\n' \
                        'number of pages = 1 number of versions = 1\n' \
                        'with contributions by [\'mustermann\']\nand file ' \
