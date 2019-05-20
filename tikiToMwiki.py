@@ -774,29 +774,21 @@ for member in archive:
                     noCentre = False
 
                     # Handle formulas
-                    # Convert formulas to XWiki syntax:
-                    # {{formula &#124; a(t) &#124; fontsize=SMALLER}}
-                    # which represents a MediaWiki tag 'formula' with
-                    # parameter 'fontsize' set to 'SMALLER' and encapsulating
-                    # 'a(t)'. An important addition to the algorithm will be
-                    # to add a replacement of '=' by '\equal' because
-                    # otherwise '=' breaks the formula. TODO This actually does
-                    # not allow for inline formulas anymore, so we need a
-                    # solution based on the Extension MathJax
+                    # TODO The old solution does not allow for inline formulas
+                    # Convert formulas based on the MathJax extension
                     if re.search(r'{HTML\(\)}', line):
                         inFormula = True
                         line = re.sub(r'{HTML\(\)}\\[(,\[]',
-                                      r'{{formula |', line)
-                        line = re.sub(r'{HTML\(\)}', '{{formula |;', line)
+                                      r'{{mathjax}}', line)
+                        line = re.sub(r'{HTML\(\)}', '{{mathjax}}', line)
                         line = re.sub(r'\\[(,\[]', '', line)
-                    if inFormula:
-                        line = re.sub(r'\\varphi', r'\\phi', line)
-                        line = line.replace('=', '\equal')
+                    # TODO This might not be needed after change to MathJax
+                    # if inFormula:
+                    #     line = re.sub(r'\\varphi', r'\\phi', line)
                     if re.search(r'{HTML}', line):
+                        line = re.sub(r'\\[),\]]{HTML}', r'{{/mathjax}}', line)
+                        line = re.sub(r'{HTML}', r'{{/mathjax}}', line)
                         inFormula = False
-                        line = re.sub(r'\\[),\]]{HTML}',
-                                      r'| fontsize=SMALLER}}', line)
-                        line = re.sub(r'{HTML}', r'| fontsize=SMALLER}}', line)
 
 
                     # if there are an odd no. of ::s don't convert to
