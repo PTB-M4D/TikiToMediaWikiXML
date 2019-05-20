@@ -356,9 +356,9 @@ def process_image(word, attachment_identifiers):
     # and to mark the place where the opening tag should be included.
     id_identifier = 'fileId='
 
-    # Define the search string with the any parameter with important image data
+    # Define the search strings for any parameter with important image data
     # that should be included in the new tag.
-    data_identifiers = ['width=', 'height=']
+    data_identifiers = ['width=']
 
     # Open the new attachment tag and insert the unique id_identifier for it.
     if id_identifier in word:
@@ -389,7 +389,7 @@ def process_image(word, attachment_identifiers):
         imagepath = urljoin(imageurl, filename)
         if options.newImagepath != '':
             imagepath = urljoin(options.newImagepath, filename)
-        words.append('[[file:' + imagepath)
+        words.append('{{File:' + imagepath + '#124;')
     for identifier in data_identifiers:
         if identifier in word:
             # Find position and length of the data for either short
@@ -401,18 +401,27 @@ def process_image(word, attachment_identifiers):
                 data_index = word.find(identifier) + len(identifier) + 1
                 data_len = word[data_index:].find('"')
             data = word[data_index:data_index + data_len]
-            if "%" not in data:
-                # Append the data to the current tag.
-                words.append(' ' + identifier + data)
+            if 'width' in word:
+                if '%' in word:
+                    # Append percentage to the current tag.
+                    words.append('upright 1.0#124;')
+                else:
+                    if 'px' in data:
+                        # Append width and separator to the current tag.
+                        words.append(data + '#124;')
+                    else:
+                        # Append width, its unit and separator to the current
+                        # tag.
+                        words.append(data + 'px#124;')
     # Close new attachment tag.
     if '}' in word:
         # Insert an extra space in case the old attachment tag did not end on
         # space.
         closing_brackets_index = word.find('}')
         if word[-1] != '}' and word[closing_brackets_index + 1] != ' ':
-            words.append(']] ')
+            words.append('}} ')
         else:
-            words.append(']]')
+            words.append('}}')
 
         # Stop processing attachment conversion in case it is really finished in
         # the current line and continue in case of multiple attachments in one
