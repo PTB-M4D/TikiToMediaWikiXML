@@ -48,13 +48,15 @@ class TestMath:
 
 class TestImages:
 
-    def test_minimal_call(self):
+    @staticmethod
+    def test_minimal_call():
         check_output(
             [sys.executable, "tikiToMwiki.py", "-k",
              "./test/images/testpage_images.xml", "-i", "./test/images/",
              "https://fb1-7.bs.ptb.de/tiki/", "./test/images/images.tar"])
 
-    def test_stdout_call(self):
+    @staticmethod
+    def test_stdout_call():
         expected_win = '<mediawiki ' \
                        'xml:lang="en">\r\n<siteinfo>\r\n<base>https://fb1-7.' \
                        'bs.ptb.de/tiki/</base>\r\n</siteinfo>\r\n<page>\r\n' \
