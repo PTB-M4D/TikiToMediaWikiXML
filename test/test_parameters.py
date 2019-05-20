@@ -101,7 +101,7 @@ class TestImages:
                        '</id>\r\n<timestamp>2018-03-12T12:38:31Z</timestamp>' \
                        '\r\n<contributor><username>mustermann</username>' \
                        '</contributor>\r\n<text xml:space="preserve">\r\n' \
-                       '__TOC__\r\n\r\n{{File:Xwiki-logo.png#124;100px#124;}} ' \
+                       '__TOC__\r\n\r\n{{File:Xwiki-logo.png#124;600px#124;}} ' \
                    '</text>\r\n' \
                        '</revision>\r\n</page>\r\n</mediawiki>\r\n\r\n' \
                        'number of pages = 1 number of versions = 1\r\nwith ' \
