@@ -1,5 +1,6 @@
 # TikiToMediaWikiXML
 
+[![CircleCI](https://circleci.com/gh/BjoernLudwigPTB/TikiToMediaWikiXML.svg?style=shield)](https://circleci.com/gh/BjoernLudwigPTB/TikiToMediaWikiXML)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/08ba4bc84fae4829a0ed74d3e70b6df8)](https://www.codacy.com/app/PTB_PSt1/TikiToMediaWikiXML?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=BjoernLudwigPTB/TikiToMediaWikiXML&amp;utm_campaign=Badge_Grade)
 
 This is the further development of the script found [here](

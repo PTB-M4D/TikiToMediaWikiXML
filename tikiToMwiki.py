@@ -15,8 +15,9 @@
 # original revision history is inserted in the commit history of this
 # repository.
 #
-# © copyright PTB 2018, T. Bruns, B.Ludwig
+# © copyright PTB 2019, T. Bruns, B.Ludwig
 
+import ast
 import datetime
 import html.entities as htmlentitydefs
 import io
@@ -34,7 +35,7 @@ from defusedxml import minidom
 
 # add any other links you may want to map between wikis here
 url_maps = {'http://tikiwiki.org/RFCWiki':
-            'http://meta.wikimedia.org/wiki/Cheatsheet'}
+                'http://meta.wikimedia.org/wiki/Cheatsheet'}
 
 
 # checks for HTML tags
@@ -353,7 +354,12 @@ def process_image(word, attachment_identifiers):
     still_processing = True
 
     # Define the search string with the unique id_identifier for the image
+    # and to mark the place where the opening tag should be included.
     id_identifier = 'fileId='
+
+    # Define the search strings for any parameter with important image data
+    # that should be included in the new tag.
+    data_identifiers = ['width=']
 
     # Open the new attachment tag and insert the unique id_identifier for it.
     if id_identifier in word:
@@ -365,7 +371,7 @@ def process_image(word, attachment_identifiers):
         else:
             file_id_index = word.find(id_identifier) + len(id_identifier) + 1
             file_id_len = word[file_id_index:].find('"')
-        file_id = word[file_id_index:file_id_index+file_id_len]
+        file_id = word[file_id_index:file_id_index + file_id_len]
         # Return error message in case the mentioned file is not anymore
         # an attachment in the current revision.
         try:
@@ -384,16 +390,39 @@ def process_image(word, attachment_identifiers):
         imagepath = urljoin(imageurl, filename)
         if options.newImagepath != '':
             imagepath = urljoin(options.newImagepath, filename)
-        words.append('[[file:' + imagepath)
+        words.append('{{File:' + imagepath + '#124;')
+    for identifier in data_identifiers:
+        if identifier in word:
+            # Find position and length of the data for either short
+            # syntax or embedded URL syntax.
+            if 'src=' in word:
+                data_index = word.find(identifier) + len(identifier)
+                data_len = word[data_index:].find('&')
+            else:
+                data_index = word.find(identifier) + len(identifier) + 1
+                data_len = word[data_index:].find('"')
+            data = word[data_index:data_index + data_len]
+            if 'width' in word:
+                if '%' in word:
+                    # Append percentage to the current tag.
+                    words.append('upright 1.0#124;')
+                else:
+                    if 'px' in data:
+                        # Append width and separator to the current tag.
+                        words.append(data + '#124;')
+                    else:
+                        # Append width, its unit and separator to the current
+                        # tag.
+                        words.append(data + 'px#124;')
     # Close new attachment tag.
     if '}' in word:
         # Insert an extra space in case the old attachment tag did not end on
         # space.
         closing_brackets_index = word.find('}')
         if word[-1] != '}' and word[closing_brackets_index + 1] != ' ':
-            words.append(']] ')
+            words.append('}} ')
         else:
-            words.append(']]')
+            words.append('}}')
 
         # Stop processing attachment conversion in case it is really finished in
         # the current line and continue in case of multiple attachments in one
@@ -504,8 +533,8 @@ if len(args) > 1:
         hour = '{:02d}'.format(now.hour)
         minute = '{:02d}'.format(now.minute)
         outputfile = outputfile[:-4] + '_' \
-            + '{}{}{}_{}{}'.format(year, month, day, hour, minute) \
-            + outputfile[-4:]
+                     + '{}{}{}_{}{}'.format(year, month, day, hour, minute) \
+                     + outputfile[-4:]
     else:
         outputfile = options.outputfile
 else:
@@ -604,8 +633,8 @@ for member in archive:
                 revision += '<revision>\n'
                 revision += '<id>REV_ID_PLACEHOLDER</id>\n'
                 revision += '<timestamp>' + time.strftime(
-                    '%Y-%m-%dT%H:%M:%SZ', time.gmtime(eval(part.get_param(
-                        'lastmodified')))) + '</timestamp>\n'
+                    '%Y-%m-%dT%H:%M:%SZ', time.gmtime(ast.literal_eval(
+                        part.get_param('lastmodified')))) + '</timestamp>\n'
                 revision += '<contributor><username>' + part.get_param(
                     'author') + '</username></contributor>\n'
                 # add author to list of contributors to be output at the end
@@ -652,7 +681,7 @@ for member in archive:
                             foundreturn = mwiki.find('\r\n!', next_elem)
                             foundbreak = mwiki.find('&lt;/br&gt;!', next_elem)
                             if (foundreturn != -1 and foundreturn <
-                                    foundbreak) or foundbreak == -1:
+                                foundbreak) or foundbreak == -1:
                                 found = foundreturn + 2
                             else:
                                 found = foundbreak + 11
@@ -789,7 +818,6 @@ for member in archive:
                         line = re.sub(r'\\[),\]]{HTML}', r'{{/mathjax}}', line)
                         line = re.sub(r'{HTML}', r'{{/mathjax}}', line)
                         inFormula = False
-
 
                     # if there are an odd no. of ::s don't convert to
                     # centered text
