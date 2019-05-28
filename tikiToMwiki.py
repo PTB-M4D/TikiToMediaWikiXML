@@ -359,7 +359,7 @@ def process_image(word, attachment_identifiers):
 
     # Define the search strings for any parameter with important image data
     # that should be included in the new tag.
-    data_identifiers = ['width=']
+    data_identifiers = ['width=', 'thumb=']
 
     # Open the new attachment tag and insert the unique id_identifier for it.
     if id_identifier in word:
@@ -414,6 +414,10 @@ def process_image(word, attachment_identifiers):
                         # Append width, its unit and separator to the current
                         # tag.
                         words.append('|' + data + 'px')
+            # Append a specific small width to the tag for images previously
+            # marked as thumbnails to show in big if mouse is over them.
+            if 'thumb="mouseover"' in word:
+                words.append('|70px')
     # Close new attachment tag.
     if '}' in word:
         # Insert an extra space in case the old attachment tag did not end on
