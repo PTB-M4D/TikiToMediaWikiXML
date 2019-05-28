@@ -96,6 +96,19 @@ class TestImages:
         assert (result == expected_lin or result == expected_win)
 
     @staticmethod
+    def test_stdout_with_mouseover_call():
+        specific_string = '__TOC__\r\n\r\n[[' \
+                          'File:Xwiki-logo.png&#124;70px]] '
+        expected_lin, expected_win = \
+            TestImages.prepare_comparison_string(specific_string)
+        result = check_output(
+            [sys.executable, "tikiToMwiki.py", "-o", "-", "-k",
+             "./test/images/testpage_images.xml", "-i", ".",
+             "https://fb1-7.bs.ptb.de/tiki/",
+             "./test/images/Image testpage_mouseover.tar"])
+        assert (result == expected_lin or result == expected_win)
+
+    @staticmethod
     def test_stdout_with_width_px_call():
         specific_string = '__TOC__\r\n\r\n[[' \
                           'File:Xwiki-logo.png&#124;600px]] '
