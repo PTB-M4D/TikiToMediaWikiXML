@@ -812,16 +812,18 @@ for member in archive:
                     if re.search(r'{HTML\(\)}', line):
                         inFormula = True
                         line = re.sub(r'{HTML\(\)}\\[(,\[]',
-                                      r'{{mathjax}}', line)
-                        line = re.sub(r'{HTML\(\)}', '{{mathjax}}', line)
+                                      r'{{mathjax |;', line)
+                        line = re.sub(r'{HTML\(\)}', '{{mathjax |;', line)
                         line = re.sub(r'\\[(,\[]', '', line)
-                    # TODO This might not be needed after change to MathJax
-                    # if inFormula:
-                    #     line = re.sub(r'\\varphi', r'\\phi', line)
+                    # TODO removing this results in the tag beeing broken
+                    if inFormula:
+                        line = re.sub(r'\\varphi', r'\\phi', line)
+                        line = line.replace('=', '\equal')
                     if re.search(r'{HTML}', line):
-                        line = re.sub(r'\\[),\]]{HTML}', r'{{/mathjax}}', line)
-                        line = re.sub(r'{HTML}', r'{{/mathjax}}', line)
                         inFormula = False
+                        line = re.sub(r'\\[),\]]{HTML}',
+                                      r'| fontsize=SMALLER}}', line)
+                        line = re.sub(r'{HTML}', r'| fontsize=SMALLER}}', line)
 
                     # if there are an odd no. of ::s don't convert to
                     # centered text
