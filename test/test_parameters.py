@@ -72,7 +72,7 @@ class TestImages:
 
     @staticmethod
     def test_stdout_minimal_call():
-        specific_string = '__TOC__\r\n\r\n{{File:Xwiki-logo.png#124;}} '
+        specific_string = '__TOC__\r\n\r\n[[File:Xwiki-logo.png]] '
         expected_lin, expected_win = \
             TestImages.prepare_comparison_string(specific_string)
         result = check_output(
@@ -84,8 +84,8 @@ class TestImages:
 
     @staticmethod
     def test_stdout_with_width_call():
-        specific_string = '__TOC__\r\n\r\n{{' \
-                          'File:Xwiki-logo.png#124;100px#124;}} '
+        specific_string = '__TOC__\r\n\r\n[[' \
+                          'File:Xwiki-logo.png&#124;100px]] '
         expected_lin, expected_win = \
             TestImages.prepare_comparison_string(specific_string)
         result = check_output(
@@ -97,8 +97,8 @@ class TestImages:
 
     @staticmethod
     def test_stdout_with_width_px_call():
-        specific_string = '__TOC__\r\n\r\n{{' \
-                          'File:Xwiki-logo.png#124;600px#124;}} '
+        specific_string = '__TOC__\r\n\r\n[[' \
+                          'File:Xwiki-logo.png&#124;600px]] '
         expected_lin, expected_win = \
             TestImages.prepare_comparison_string(specific_string)
         result = check_output(
@@ -110,8 +110,8 @@ class TestImages:
 
     @staticmethod
     def test_stdout_with_percentage_call():
-        specific_string = '__TOC__\r\n\r\n{{File:Xwiki-logo.png#124;upright ' \
-                   '1.0#124;}} '
+        specific_string = '__TOC__\r\n\r\n[[File:Xwiki-logo.png&#124;upright ' \
+                   '1.0]] '
         expected_lin, expected_win = \
             TestImages.prepare_comparison_string(specific_string)
         result = check_output(
