@@ -790,11 +790,9 @@ for member in archive:
                                + " " + m.group(3) + "]" + m.group(4) + "\n"
 
                     # Convert 'CODE' samples to MediaWiki syntax
-                    line = re.sub(r'{CODE\(caption=&amp;gt;(.*)\)}',
-                                  r'<!-- \1 --><source>', line)
-                    line = re.sub(r'{CODE\((.*)\)}',
-                                  r'<source>', line)
-                    line = re.sub(r'{CODE}', r'</source>', line)
+                    line = re.sub(r'(.*){CODE\(caption=&amp;gt;(.*)\)}(.*)',
+                                  r'\1<!-- \2 --><source>\3', line)
+                    line = re.sub(r'(.*){CODE}(.*)', r'\1</source>\2', line)
 
                     # Convert anchor
                     line = re.sub(r'{ANAME\(\)}(.*){ANAME}',
@@ -889,6 +887,12 @@ for member in archive:
                                                + elem[next_elem + 2:]
                                         inColourTag = True
                                 next_elem += 1
+                        # Activate link processing.
+                        if '((' in elem:
+                            intLink = True
+                        # Activate code block processing.
+                        if '{CODE' in elem:
+                            intLink = True
                         if any(tag in elem for tag in attachment_identifiers):
                             processing_attachment = True
                         if processing_attachment:
