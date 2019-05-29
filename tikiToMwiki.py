@@ -790,6 +790,7 @@ for member in archive:
                                + " " + m.group(3) + "]" + m.group(4) + "\n"
 
                     # Convert 'CODE' samples to MediaWiki syntax
+                    # TODO After changing this, the code blocks disappeared.
                     line = re.sub(r'(.*){CODE\(caption=&amp;gt;(.*)\)}(.*)',
                                   r'\1<!-- \2 --><source>\3', line)
                     line = re.sub(r'(.*){CODE}(.*)', r'\1</source>\2', line)
