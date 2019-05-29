@@ -806,18 +806,16 @@ for member in archive:
                     heading = False
                     noCentre = False
 
-                    # Handle formulas
-                    # TODO The old solution does not allow for inline formulas
-                    # Convert formulas based on the MathJax extension
+                    # Convert formulas based on the MathJax macro.
                     if re.search(r'{HTML\(\)}', line):
                         inFormula = True
-                        line = re.sub(r'{HTML\(\)}\\[(,\[]',
+                        line = re.sub(r'{HTML\(\)}',
                                       r'<macro:mathjax>', line)
                         line = re.sub(r'{HTML\(\)}', '<macro:mathjax>', line)
-                        line = re.sub(r'\\[(,\[]', '', line)
+                        # line = re.sub(r'\\[(,\[]', '', line)
                     if re.search(r'{HTML}', line):
                         inFormula = False
-                        line = re.sub(r'\\[),\]]{HTML}',
+                        line = re.sub(r'{HTML}',
                                       r'</macro:mathjax>', line)
                         line = re.sub(r'{HTML}', r'</macro:mathjax>', line)
 
@@ -893,8 +891,6 @@ for member in archive:
                                 next_elem += 1
                         if any(tag in elem for tag in attachment_identifiers):
                             processing_attachment = True
-                        if '((' in elem:
-                            intLink = True
                         if processing_attachment:
                             words, processing_attachment = process_image(
                                 elem, attachment_identifiers)
