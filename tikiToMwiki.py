@@ -416,7 +416,7 @@ def process_image(word, attachment_identifiers):
                         words.append('|' + data + 'px')
             # Append a specific small width to the tag for images previously
             # marked as thumbnails to show in big if mouse is over them.
-            if 'thumb="mouseover"' in word:
+            if 'thumb=' in word:
                 words.append('|70px')
     # Close new attachment tag.
     if '}' in word:
