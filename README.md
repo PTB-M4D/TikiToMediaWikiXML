@@ -15,3 +15,9 @@ instance or an XWiki instance using the Filter Streams Converter Application
 and following the procedure to import MediaWiki content as described [here](
 https://extensions.xwiki.org/xwiki/bin/view/Extension/MediaWiki/MediaWiki%20XML/
 ).
+
+## How to use it?
+
+A detailed description how to use the script you can find in the
+[MediaWiki documentation
+](https://www.mediawiki.org/wiki/Manual:TikiWiki_Conversion).
