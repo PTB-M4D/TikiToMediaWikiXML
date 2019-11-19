@@ -44,7 +44,7 @@ jobs:
         name: run tests
         command: |
           . venv/bin/activate
-          pytest -v > test-reports/pytest.log
+          pytest --junitxml=test-reports/pytest.xml -v > test-reports/pytest.log
 
 
     # Store test results.
