@@ -1,12 +1,12 @@
-# Python CircleCI 2.0 configuration file
+# Python CircleCI 2.1 configuration file
 #
 # Check https://circleci.com/docs/2.0/language-python/ for more details
 #
-version: 2
+version: 2.1
 jobs:
   build:
     docker:
-    - image: circleci/python:3.7.2
+    - image: circleci/python:3.7
 
     working_directory: ~/repo
 
@@ -22,7 +22,7 @@ jobs:
     # Download and cache dependencies.
     - restore_cache:
         keys:
-        - v1-dependencies-{{ checksum "requirements.txt" }}
+        - v1-dependencies-{{ checksum "requirements/requirements.txt" }}
         # Fallback to using the latest cache if no exact match is found.
         - v1-dependencies-
 
@@ -31,19 +31,19 @@ jobs:
         command: |
           python3 -m venv venv
           . venv/bin/activate
-          pip install -r requirements.txt
+          pip install -r requirements/requirements.txt
 
     - save_cache:
         paths:
         - ./venv
-        key: v1-dependencies-{{ checksum "requirements.txt" }}
+        key: v1-dependencies-{{ checksum "requirements/requirements.txt" }}
 
     # Run tests! We use pytest's test-runner (https://pytest.org)
     - run:
         name: run tests
         command: |
           . venv/bin/activate
-          pytest -v >> test-reports/pytest.log
+          pytest -v > test-reports/pytest.log
 
 
     # Store test results.
