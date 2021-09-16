@@ -1,7 +1,7 @@
 # TikiToMediaWikiXML
 
-[![CircleCI](https://circleci.com/gh/PTB-PSt1/TikiToMediaWikiXML.svg?style=shield)](https://circleci.com/gh/PTB-PSt1/TikiToMediaWikiXML)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/08ba4bc84fae4829a0ed74d3e70b6df8)](https://www.codacy.com/app/PTB-PSt1/TikiToMediaWikiXML?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=PTB-PSt1/TikiToMediaWikiXML&amp;utm_campaign=Badge_Grade)
+[![CircleCI](https://circleci.com/gh/PTB-M4D/TikiToMediaWikiXML.svg?style=shield)](https://app.circleci.com/pipelines/github/PTB-M4D/TikiToMediaWikiXML)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/6efbcfdf88cf4224846f1f37a4918236)](https://www.codacy.com/gh/PTB-M4D/TikiToMediaWikiXML/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=PTB-M4D/TikiToMediaWikiXML&amp;utm_campaign=Badge_Grade)
 
 This is the further development of the script found [here](
 https://www.mediawiki.org/wiki/Manual:TikiWiki_Conversion). First we 
